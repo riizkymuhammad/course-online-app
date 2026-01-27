@@ -14,9 +14,24 @@ Route::get('/', function () {
     ]);
 });
 
+Route::get('/discovery', function () {
+    return Inertia::render('Discovery');
+});
+
+Route::get('/course/{id}', function ($id) {
+    return Inertia::render('Course', [
+        'id' => (string) $id,
+    ]);
+});
+
+
 Route::get('/dashboard', function () {
-    return Inertia::render('Dashboard');
+    return Inertia::render('Dashboard/Index');
 })->middleware(['auth', 'verified'])->name('dashboard');
+
+Route::get('/dashboard/learning', function () {
+    return Inertia::render('Dashboard/Learning');
+})->middleware(['auth', 'verified'])->name('dashboard.learning');
 
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');

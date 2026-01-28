@@ -33,6 +33,10 @@ Route::get('/dashboard/learning', function () {
     return Inertia::render('Dashboard/Learning');
 })->middleware(['auth', 'verified'])->name('dashboard.learning');
 
+Route::get('/dashboard/course', function () {
+ return Inertia::render('Dashboard/Course');
+})->middleware(['auth', 'verified'])->name('dashboard.course');
+
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');

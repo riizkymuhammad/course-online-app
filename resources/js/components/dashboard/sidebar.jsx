@@ -17,7 +17,7 @@ import { cn } from "@/lib/utils"
 ========================= */
 const menuItems = [
   { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
-  { name: "Materi", href: "/dashboard/materi", icon: BookOpen },
+  { name: "Materi", href: "/dashboard/course", icon: BookOpen },
   { name: "Pembelajaran", href: "/dashboard/learning", icon: BookMarked },
   { name: "Profil", href: "/dashboard/profile", icon: User },
 ]

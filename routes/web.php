@@ -37,6 +37,15 @@ Route::get('/dashboard/course', function () {
  return Inertia::render('Dashboard/Course');
 })->middleware(['auth', 'verified'])->name('dashboard.course');
 
+
+Route::get('/dashboard/management-course', function () {
+ return Inertia::render('Dashboard/ManagementCourse');
+})->name('dashboard.management-course');
+
+Route::get('/dashboard/management-users', function () {
+ return Inertia::render('Dashboard/ManagementUsers');
+})->name('dashboard.management-users');
+
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');

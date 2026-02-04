@@ -1,13 +1,7 @@
 import React from "react"
+import DashboardLayout from "@/layouts/DashboardLayout"
+import { BookOpen, Users, ShoppingCart, TrendingUp, ArrowUpRight, Sparkles } from "lucide-react"
 import { Link } from "@inertiajs/react"
-import {
-  BookOpen,
-  Users,
-  ShoppingCart,
-  TrendingUp,
-  ArrowUpRight,
-  Sparkles,
-} from "lucide-react"
 
 export default function DashboardIndex() {
   const stats = [
@@ -68,7 +62,7 @@ export default function DashboardIndex() {
   ]
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-white p-6 lg:p-8">
+    <div className="p-6 lg:p-8">
       {/* Header */}
       <div className="mb-10">
         <div className="flex items-center gap-3 mb-2">
@@ -82,7 +76,7 @@ export default function DashboardIndex() {
         </p>
       </div>
 
-      {/* Statistics Cards */}
+      {/* Statistics */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 mb-12">
         {stats.map((stat) => (
           <div
@@ -101,14 +95,12 @@ export default function DashboardIndex() {
             <h3 className="text-3xl font-bold text-slate-800 mb-1">{stat.value}</h3>
             <p className="text-sm font-medium text-slate-600 mb-1">{stat.title}</p>
             <p className="text-xs text-slate-400">{stat.description}</p>
-            <div
-              className={`absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r ${stat.color} rounded-b-2xl opacity-0 group-hover:opacity-100 transition-opacity`}
-            />
+            <div className={`absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r ${stat.color} rounded-b-2xl opacity-0 group-hover:opacity-100 transition-opacity`} />
           </div>
         ))}
       </div>
 
-      {/* Management Section */}
+      {/* Management */}
       <div>
         <div className="flex items-center gap-3 mb-6">
           <div className="p-2 rounded-xl bg-slate-100">
@@ -127,9 +119,7 @@ export default function DashboardIndex() {
               href={menu.href}
               className="group relative bg-white rounded-2xl p-6 border border-slate-100 hover:border-blue-200 shadow-sm hover:shadow-xl hover:shadow-blue-100/50 transition-all duration-300 overflow-hidden"
             >
-              <div
-                className={`absolute top-0 right-0 w-32 h-32 bg-gradient-to-br ${menu.color} opacity-5 rounded-full -translate-y-16 translate-x-16 group-hover:scale-150 transition-transform duration-500`}
-              />
+              <div className={`absolute top-0 right-0 w-32 h-32 bg-gradient-to-br ${menu.color} opacity-5 rounded-full -translate-y-16 translate-x-16 group-hover:scale-150 transition-transform duration-500`} />
               <div className="relative">
                 <div className="flex items-center justify-between mb-4">
                   <div className={`p-3 rounded-xl bg-gradient-to-r ${menu.color} shadow-lg`}>
@@ -149,3 +139,6 @@ export default function DashboardIndex() {
     </div>
   )
 }
+
+/** Integrasi layout Inertia */
+DashboardIndex.layout = (page) => <DashboardLayout children={page} />

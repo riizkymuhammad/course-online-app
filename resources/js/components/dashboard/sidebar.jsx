@@ -16,14 +16,14 @@ import { cn } from "@/lib/utils"
 
 const menuItems = [
   { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
-  { name: "Materi", href: "/dashboard/materi", icon: BookOpen },
+  { name: "Materi", href: "/dashboard/course", icon: BookOpen },
   { name: "Pembelajaran", href: "/dashboard/learning", icon: BookMarked },
   { name: "Profil", href: "/dashboard/profile", icon: User },
 ]
 
 const managementItems = [
-  { name: "Manajemen Materi", href: "/dashboard/materials", icon: Layers },
-  { name: "Manajemen Pengguna", href: "/dashboard/users", icon: Users },
+  { name: "Manajemen Materi", href: "/dashboard/management-course", icon: Layers },
+  { name: "Manajemen Pengguna", href: "/dashboard/management-users", icon: Users },
   { name: "Manajemen Pembelian", href: "/dashboard/purchases", icon: ShoppingCart },
 ]
 

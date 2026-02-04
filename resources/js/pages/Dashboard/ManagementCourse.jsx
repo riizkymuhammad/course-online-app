@@ -1,9 +1,10 @@
 import React, { useMemo, useState } from "react";
-import DashboardLayout from "@/layouts/DashboardLayout"
+import DashboardLayout from "@/layouts/DashboardLayout";
 import { BookOpen } from "lucide-react";
 import { PageHeader } from "@/molecules/PageHeader";
 import { ActionBar } from "@/molecules/ActionBar";
 import { ManagementCourseTable } from "@/organisms/ManagementCourseTable";
+import { router } from "@inertiajs/react";
 
 export default function ManagementCourseIndex() {
   const [q, setQ] = useState("");
@@ -40,7 +41,7 @@ export default function ManagementCourseIndex() {
         searchPlaceholder="Cari course..."
         buttonLabel="Tambah Course"
         onSearchChange={setQ}
-        onAdd={() => console.log("Tambah course")}
+        onAdd={() => router.get(route("dashboard.management-course.create"))}
       />
 
       <ManagementCourseTable
@@ -53,4 +54,4 @@ export default function ManagementCourseIndex() {
   );
 }
 
-ManagementCourseIndex.layout = (page) => <DashboardLayout children={page} />
+ManagementCourseIndex.layout = (page) => <DashboardLayout children={page} />;

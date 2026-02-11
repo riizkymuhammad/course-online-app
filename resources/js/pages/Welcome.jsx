@@ -56,37 +56,6 @@ const categories = [
   { title: "UTBK", icon: "graduation", href: "/discovery?kategori=utbk", courseCount: 20 },
 ]
 
-const courses = [
-  {
-    id: "1",
-    title: "Complete TOEFL Preparation - Score 550+",
-    image: "https://picsum.photos/seed/toefl/800/500",
-    category: "Bahasa Inggris",
-    price: 299000,
-  },
-  {
-    id: "2",
-    title: "Persiapan CPNS 2026 - Paket Lengkap",
-    image: "https://picsum.photos/seed/cpns/800/500",
-    category: "CPNS",
-    price: 399000,
-  },
-  {
-    id: "3",
-    title: "Matematika SMA Kelas 12",
-    image: "https://picsum.photos/seed/sma/800/500",
-    category: "SMA",
-    price: 149000,
-  },
-  {
-    id: "4",
-    title: "UTBK SNBT 2026 - TPS & Literasi",
-    image: "https://picsum.photos/seed/utbk/800/500",
-    category: "UTBK",
-    price: 349000,
-  },
-]
-
 const footerSections = [
   {
     title: "Kategori",
@@ -129,7 +98,7 @@ const socialLinks = [
    PAGE
 ===================================================== */
 
-export default function Welcome() {
+export default function Welcome({ courses = [] }) {
   const whatsappNumber = "6281234567890"
   const whatsappMessage = encodeURIComponent(
     "Halo, saya ingin konsultasi mengenai kursus yang tersedia."

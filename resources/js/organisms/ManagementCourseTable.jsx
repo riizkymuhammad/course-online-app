@@ -1,5 +1,5 @@
 import React from "react";
-import { BookOpen, Layers, Users } from "lucide-react";
+import { BookOpen, Layers } from "lucide-react";
 import { StatPill } from "@/atoms/StatPill";
 import { StatusBadge } from "@/atoms/StatusBadge";
 import { RowActions } from "@/atoms/RowActions";
@@ -13,8 +13,9 @@ export function ManagementCourseTable({ courses = [], onView, onEdit, onDelete }
             <tr className="border-b border-slate-100 bg-slate-50/50">
               <th className="text-left text-sm font-semibold text-slate-600 px-6 py-4">Judul Course</th>
               <th className="text-left text-sm font-semibold text-slate-600 px-6 py-4">Kategori</th>
-              <th className="text-left text-sm font-semibold text-slate-600 px-6 py-4">Pelajaran</th>
-              <th className="text-left text-sm font-semibold text-slate-600 px-6 py-4">Siswa</th>
+              <th className="text-left text-sm font-semibold text-slate-600 px-6 py-4">Section</th>
+              <th className="text-left text-sm font-semibold text-slate-600 px-6 py-4">Modul</th>
+              <th className="text-left text-sm font-semibold text-slate-600 px-6 py-4">Pemateri</th>
               <th className="text-left text-sm font-semibold text-slate-600 px-6 py-4">Status</th>
               <th className="text-left text-sm font-semibold text-slate-600 px-6 py-4">Aksi</th>
             </tr>
@@ -39,17 +40,27 @@ export function ManagementCourseTable({ courses = [], onView, onEdit, onDelete }
                 </td>
 
                 <td className="px-6 py-4">
-                  <span className="px-3 py-1.5 bg-blue-50 text-blue-600 rounded-lg text-xs font-medium">
-                    {course.category}
+                  {Array.isArray(course.categories) && course.categories.length > 0 ? (
+                    <span className="px-3 py-1.5 bg-blue-50 text-blue-600 rounded-lg text-xs font-medium">
+                      {course.categories.map((cat) => cat.name).join(", ")}
+                    </span>
+                  ) : (
+                    <span className="text-xs text-slate-400">-</span>
+                  )}
+                </td>
+
+                <td className="px-6 py-4">
+                  <StatPill icon={Layers} value={course.sections_count ?? 0} />
+                </td>
+
+                <td className="px-6 py-4">
+                  <StatPill icon={Layers} value={course.modules_count ?? 0} />
+                </td>
+
+                <td className="px-6 py-4">
+                  <span className="text-sm font-medium text-slate-700">
+                    {course.instructor || "-"}
                   </span>
-                </td>
-
-                <td className="px-6 py-4">
-                  <StatPill icon={Layers} value={course.lessons} />
-                </td>
-
-                <td className="px-6 py-4">
-                  <StatPill icon={Users} value={course.students} />
                 </td>
 
                 <td className="px-6 py-4">

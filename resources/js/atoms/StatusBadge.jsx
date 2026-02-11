@@ -16,7 +16,8 @@ export function StatusBadge({ status, progress }) {
   }
 
   // mode status (Published / Draft / etc)
-  const isPublished = status === "Published";
+  const normalized = String(status || "").toLowerCase();
+  const isPublished = normalized === "published" || normalized === "publish";
 
   return (
     <span

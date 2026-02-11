@@ -12,20 +12,28 @@ import { CourseGrid } from "@/organisms/CourseGrid"
    DATA
 ========================= */
 
+const buildCourseImage = (title, category) => {
+  const params = new URLSearchParams({ title, category })
+  return `/course-image?${params.toString()}`
+}
+
 const allCourses = [
-  { id: "1", title: "Complete TOEFL Preparation - Score 550+", image: "https://picsum.photos/seed/toefl/800/500", category: "Bahasa Inggris", price: 299000 },
-  { id: "2", title: "Persiapan CPNS 2026 - Paket Lengkap TWK TIU TKP", image: "https://picsum.photos/seed/cpns/800/500", category: "CPNS", price: 399000 },
-  { id: "3", title: "Matematika SMA Kelas 12 - Persiapan UN", image: "https://picsum.photos/seed/sma-math/800/500", category: "SMA", price: 149000 },
-  { id: "4", title: "UTBK SNBT 2026 - TPS & Literasi", image: "https://picsum.photos/seed/utbk/800/500", category: "UTBK", price: 349000 },
-  { id: "5", title: "Bahasa Indonesia SMP - Paket Lengkap", image: "https://picsum.photos/seed/smp-indo/800/500", category: "SMP", price: 99000 },
-  { id: "6", title: "Matematika SD Kelas 6 - Persiapan UN", image: "https://picsum.photos/seed/sd-math/800/500", category: "SD", price: 79000 },
-  { id: "7", title: "IELTS Academic Preparation - Band 7+", image: "https://picsum.photos/seed/ielts/800/500", category: "Bahasa Inggris", price: 449000 },
-  { id: "8", title: "Fisika SMA - Mekanika dan Termodinamika", image: "https://picsum.photos/seed/physics/800/500", category: "SMA", price: 179000 },
-  { id: "9", title: "Speaking English Fluently - Conversation Course", image: "https://picsum.photos/seed/speaking/800/500", category: "Bahasa Inggris", price: 199000 },
-  { id: "10", title: "SKD CPNS - Tryout Nasional", image: "https://picsum.photos/seed/tryout/800/500", category: "CPNS", price: 249000 },
-  { id: "11", title: "IPA SD Kelas 5 - Lengkap", image: "https://picsum.photos/seed/ipa/800/500", category: "SD", price: 69000 },
-  { id: "12", title: "UTBK Penalaran Matematika", image: "https://picsum.photos/seed/utbk-math/800/500", category: "UTBK", price: 299000 },
-]
+  { id: "1", title: "Complete TOEFL Preparation - Score 550+", description: "Persiapan TOEFL lengkap dengan latihan dan simulasi ujian.", category: "Bahasa Inggris", price: 299000 },
+  { id: "2", title: "Persiapan CPNS 2026 - Paket Lengkap TWK TIU TKP", description: "Materi CPNS terstruktur plus tryout nasional.", category: "CPNS", price: 399000 },
+  { id: "3", title: "Matematika SMA Kelas 12 - Persiapan UN", description: "Ringkasan konsep dan latihan soal UN Matematika.", category: "SMA", price: 149000 },
+  { id: "4", title: "UTBK SNBT 2026 - TPS & Literasi", description: "Strategi TPS & literasi dengan pembahasan soal.", category: "UTBK", price: 349000 },
+  { id: "5", title: "Bahasa Indonesia SMP - Paket Lengkap", description: "Materi bahasa Indonesia lengkap dan mudah dipahami.", category: "SMP", price: 99000 },
+  { id: "6", title: "Matematika SD Kelas 6 - Persiapan UN", description: "Latihan intensif untuk persiapan UN SD.", category: "SD", price: 79000 },
+  { id: "7", title: "IELTS Academic Preparation - Band 7+", description: "Fokus listening, reading, writing, speaking IELTS.", category: "Bahasa Inggris", price: 449000 },
+  { id: "8", title: "Fisika SMA - Mekanika dan Termodinamika", description: "Penjelasan konsep + latihan soal fisika SMA.", category: "SMA", price: 179000 },
+  { id: "9", title: "Speaking English Fluently - Conversation Course", description: "Latihan speaking dengan metode percakapan.", category: "Bahasa Inggris", price: 199000 },
+  { id: "10", title: "SKD CPNS - Tryout Nasional", description: "Simulasi SKD CPNS dan pembahasan lengkap.", category: "CPNS", price: 249000 },
+  { id: "11", title: "IPA SD Kelas 5 - Lengkap", description: "IPA SD lengkap dengan contoh dan latihan.", category: "SD", price: 69000 },
+  { id: "12", title: "UTBK Penalaran Matematika", description: "Kumpulan soal penalaran matematika UTBK.", category: "UTBK", price: 299000 },
+].map((course) => ({
+  ...course,
+  image: buildCourseImage(course.title, course.category),
+}))
 
 const categories = [
   { id: "semua", label: "Semua" },

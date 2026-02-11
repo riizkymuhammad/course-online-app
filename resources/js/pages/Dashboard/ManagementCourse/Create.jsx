@@ -70,8 +70,8 @@ export default function CreateCoursePage() {
                   </h1>
                 </div>
                 <p className="text-gray-600 text-base max-w-2xl">
-                  Buat kursus pembelajaran online yang menarik dengan mudah. Atur detail kursus,
-                  buat sections, dan tambahkan modul pembelajaran dari YouTube atau manual.
+                  Buat kursus pembelajaran online yang menarik dengan mudah. Isi detail kursus
+                  terlebih dulu, lalu lanjutkan pengaturan section dan module setelah kursus tersimpan.
                 </p>
               </div>
             </div>

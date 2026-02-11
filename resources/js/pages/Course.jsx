@@ -14,13 +14,18 @@ import { Instagram, Facebook, Youtube, Twitter } from "lucide-react"
    DATA (SEMUA DI COURSE PAGE)
 ===================================================== */
 
+const buildCourseImage = (title, category) => {
+  const params = new URLSearchParams({ title, category })
+  return `/course-image?${params.toString()}`
+}
+
 const coursesData = {
   "1": {
     id: "1",
     title: "Complete TOEFL Preparation - Score 550+",
     description:
       "Persiapan lengkap untuk ujian TOEFL dengan materi komprehensif meliputi Reading, Listening, Speaking, dan Writing. Kursus ini dirancang oleh instruktur berpengalaman dengan track record siswa yang berhasil mencapai skor 550+. Dilengkapi dengan simulasi ujian dan pembahasan detail untuk setiap jenis soal.",
-    image: "https://picsum.photos/seed/toefl/1200/700",
+    image: buildCourseImage("Complete TOEFL Preparation - Score 550+", "Bahasa Inggris"),
     category: "Bahasa Inggris",
     price: 299000,
     totalSections: 8,
@@ -66,7 +71,7 @@ const coursesData = {
     title: "Persiapan CPNS 2026 - Paket Lengkap TWK TIU TKP",
     description:
       "Paket persiapan CPNS terlengkap dengan materi TWK (Tes Wawasan Kebangsaan), TIU (Tes Intelegensia Umum), dan TKP (Tes Karakteristik Pribadi). Dilengkapi dengan tryout nasional dan pembahasan soal-soal tahun sebelumnya.",
-    image: "https://picsum.photos/seed/cpns/1200/700",
+    image: buildCourseImage("Persiapan CPNS 2026 - Paket Lengkap TWK TIU TKP", "CPNS"),
     category: "CPNS",
     price: 399000,
     totalSections: 6,
@@ -112,7 +117,7 @@ const defaultCourse = {
   title: "Kursus Pembelajaran Online",
   description:
     "Kursus pembelajaran online dengan materi lengkap dan terstruktur untuk membantu Anda mencapai tujuan belajar. Dilengkapi dengan video pembelajaran berkualitas tinggi dan latihan soal interaktif.",
-  image: "https://picsum.photos/seed/default/1200/700",
+  image: buildCourseImage("Kursus Pembelajaran Online", "Umum"),
   category: "Umum",
   price: 199000,
   totalSections: 5,
@@ -141,17 +146,20 @@ const defaultCourse = {
 }
 
 const allCourses = [
-  { id: "1", title: "Complete TOEFL Preparation - Score 550+", image: "https://picsum.photos/seed/toefl-rel/900/600", category: "Bahasa Inggris", price: 299000 },
-  { id: "2", title: "Persiapan CPNS 2026 - Paket Lengkap TWK TIU TKP", image: "https://picsum.photos/seed/cpns-rel/900/600", category: "CPNS", price: 399000 },
-  { id: "3", title: "Matematika SMA Kelas 12 - Persiapan UN", image: "https://picsum.photos/seed/sma-rel/900/600", category: "SMA", price: 149000 },
-  { id: "4", title: "UTBK SNBT 2026 - TPS & Literasi", image: "https://picsum.photos/seed/utbk-rel/900/600", category: "UTBK", price: 349000 },
-  { id: "5", title: "Bahasa Indonesia SMP - Paket Lengkap", image: "https://picsum.photos/seed/smp-rel/900/600", category: "SMP", price: 99000 },
-  { id: "6", title: "Matematika SD Kelas 6 - Persiapan UN", image: "https://picsum.photos/seed/sd-rel/900/600", category: "SD", price: 79000 },
-  { id: "7", title: "IELTS Academic Preparation - Band 7+", image: "https://picsum.photos/seed/ielts-rel/900/600", category: "Bahasa Inggris", price: 449000 },
-  { id: "8", title: "Fisika SMA - Mekanika dan Termodinamika", image: "https://picsum.photos/seed/physics-rel/900/600", category: "SMA", price: 179000 },
-  { id: "9", title: "Speaking English Fluently - Conversation Course", image: "https://picsum.photos/seed/speaking-rel/900/600", category: "Bahasa Inggris", price: 199000 },
-  { id: "10", title: "SKD CPNS - Tryout Nasional", image: "https://picsum.photos/seed/tryout-rel/900/600", category: "CPNS", price: 249000 },
-]
+  { id: "1", title: "Complete TOEFL Preparation - Score 550+", description: "Persiapan TOEFL lengkap dengan latihan dan simulasi ujian.", category: "Bahasa Inggris", price: 299000 },
+  { id: "2", title: "Persiapan CPNS 2026 - Paket Lengkap TWK TIU TKP", description: "Materi CPNS terstruktur plus tryout nasional.", category: "CPNS", price: 399000 },
+  { id: "3", title: "Matematika SMA Kelas 12 - Persiapan UN", description: "Ringkasan konsep dan latihan soal UN Matematika.", category: "SMA", price: 149000 },
+  { id: "4", title: "UTBK SNBT 2026 - TPS & Literasi", description: "Strategi TPS & literasi dengan pembahasan soal.", category: "UTBK", price: 349000 },
+  { id: "5", title: "Bahasa Indonesia SMP - Paket Lengkap", description: "Materi bahasa Indonesia lengkap dan mudah dipahami.", category: "SMP", price: 99000 },
+  { id: "6", title: "Matematika SD Kelas 6 - Persiapan UN", description: "Latihan intensif untuk persiapan UN SD.", category: "SD", price: 79000 },
+  { id: "7", title: "IELTS Academic Preparation - Band 7+", description: "Fokus listening, reading, writing, speaking IELTS.", category: "Bahasa Inggris", price: 449000 },
+  { id: "8", title: "Fisika SMA - Mekanika dan Termodinamika", description: "Penjelasan konsep + latihan soal fisika SMA.", category: "SMA", price: 179000 },
+  { id: "9", title: "Speaking English Fluently - Conversation Course", description: "Latihan speaking dengan metode percakapan.", category: "Bahasa Inggris", price: 199000 },
+  { id: "10", title: "SKD CPNS - Tryout Nasional", description: "Simulasi SKD CPNS dan pembahasan lengkap.", category: "CPNS", price: 249000 },
+].map((course) => ({
+  ...course,
+  image: buildCourseImage(course.title, course.category),
+}))
 
 const footerSections = [
   {
@@ -193,13 +201,42 @@ const socialLinks = [
 
 const slugKategori = (label) => label.toLowerCase().replace(/\s+/g, "-")
 
+const normalizeServerCourse = (raw) => {
+  if (!raw) return null
+  return {
+    id: raw.id ?? raw.uuid ?? "server",
+    uuid: raw.uuid ?? "",
+    slug: raw.slug ?? "",
+    title: raw.title ?? "Kursus Pembelajaran Online",
+    description: raw.description ?? "",
+    image:
+      raw.image ??
+      buildCourseImage(raw.title || "Kursus Pembelajaran Online", raw.category || "Umum"),
+    category: raw.category ?? "Umum",
+    price: raw.price ?? 0,
+    totalSections: raw.totalSections ?? 0,
+    totalModules: raw.totalModules ?? 0,
+    duration: raw.duration ?? "",
+    students: raw.students ?? 0,
+    rating: raw.rating ?? 0,
+    instructor: raw.instructor ?? "",
+    features: Array.isArray(raw.features) ? raw.features : [],
+    sections: Array.isArray(raw.sections) ? raw.sections : [],
+  }
+}
+
 /* =====================================================
    PAGE
 ===================================================== */
 
-export default function Show({ id }) {
+export default function Show({ id, course: serverCourse }) {
   // ✅ FIX: sekarang coursesData ada di file ini
-  const course = coursesData[id] ? coursesData[id] : { ...defaultCourse, id }
+  const normalizedServer = normalizeServerCourse(serverCourse)
+  const course = normalizedServer
+    ? normalizedServer
+    : coursesData[id]
+    ? coursesData[id]
+    : { ...defaultCourse, id }
 
   const relatedCourses = useMemo(() => {
     const rel = allCourses

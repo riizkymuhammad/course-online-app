@@ -7,15 +7,26 @@ import { formatPriceIDR } from "@/lib/formatters"
 export function PurchaseCard({ course, onBuyNow, onAddToCart }) {
   return (
     <Card className="overflow-hidden border border-border/50 bg-card shadow-xl">
-      <div className="relative aspect-video hidden lg:block">
+      <div className="relative aspect-video hidden lg:block bg-slate-50">
         <img
           src={course.image}
           alt={course.title}
           onError={(e) => (e.currentTarget.src = "https://picsum.photos/seed/fallback/1200/700")}
-          className="absolute inset-0 w-full h-full object-cover"
+          className="absolute inset-0 w-full h-full object-cover opacity-5"
           loading="eager"
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-b from-slate-50/90 via-white/70 to-slate-100/90" />
+        <div className="absolute top-3 left-3">
+          <span className="px-3 py-1.5 rounded-full text-xs font-semibold bg-blue-50 text-blue-700 border border-blue-200 shadow-sm">
+            {course.category || "Course"}
+          </span>
+        </div>
+        <div className="absolute inset-0 flex flex-col items-center justify-center text-center px-6">
+          <div className="text-sm font-semibold text-blue-700/80">Course</div>
+          <h3 className="text-xl md:text-2xl font-bold text-blue-800 leading-snug line-clamp-2">
+            {course.title}
+          </h3>
+        </div>
       </div>
 
       <CardContent className="p-5 space-y-5">

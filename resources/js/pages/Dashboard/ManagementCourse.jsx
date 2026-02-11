@@ -6,28 +6,25 @@ import { ActionBar } from "@/molecules/ActionBar";
 import { ManagementCourseTable } from "@/organisms/ManagementCourseTable";
 import { router } from "@inertiajs/react";
 
-export default function ManagementCourseIndex() {
+export default function ManagementCourseIndex({ courses = [] }) {
   const [q, setQ] = useState("");
-
-  const courses = [
-    { id: 1, title: "React Basics", category: "Web Development", lessons: 12, students: 345, status: "Published" },
-    { id: 2, title: "Advanced JavaScript", category: "Programming", lessons: 18, students: 298, status: "Published" },
-    { id: 3, title: "UI/UX Design Principles", category: "Design", lessons: 10, students: 156, status: "Draft" },
-    { id: 4, title: "Python for Data Science", category: "Data Science", lessons: 15, students: 402, status: "Published" },
-  ];
 
   const filtered = useMemo(() => {
     const keyword = q.trim().toLowerCase();
     if (!keyword) return courses;
 
     return courses.filter((c) => {
+      const categoryLabel = Array.isArray(c.categories) && c.categories.length > 0
+        ? c.categories.map((cat) => cat.name).join(", ")
+        : "";
+
       return (
         c.title.toLowerCase().includes(keyword) ||
-        c.category.toLowerCase().includes(keyword) ||
+        categoryLabel.toLowerCase().includes(keyword) ||
         c.status.toLowerCase().includes(keyword)
       );
     });
-  }, [q]);
+  }, [q, courses]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-white p-6 lg:p-8">
@@ -46,9 +43,28 @@ export default function ManagementCourseIndex() {
 
       <ManagementCourseTable
         courses={filtered}
-        onView={(course) => console.log("View:", course)}
-        onEdit={(course) => console.log("Edit:", course)}
-        onDelete={(course) => console.log("Delete:", course)}
+        onView={(course) =>
+          router.get(
+            route("dashboard.management-course.detail", {
+              course: course.uuid || course.id,
+              slug: course.slug || "detail",
+            })
+          )
+        }
+        onEdit={(course) =>
+          router.get(
+            route("dashboard.management-course.detail", {
+              course: course.uuid || course.id,
+              slug: course.slug || "detail",
+            })
+          )
+        }
+        onDelete={(course) => {
+          if (!window.confirm(`Hapus kursus "${course.title}"?`)) return;
+          router.delete(route("dashboard.management-course.destroy", course.uuid || course.id), {
+            preserveScroll: true,
+          });
+        }}
       />
     </div>
   );

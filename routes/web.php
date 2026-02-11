@@ -49,7 +49,7 @@ Route::get('/course-image', [CourseImageController::class, 'show'])
     ->name('course.image');
 
 Route::get('/course/{course}/{slug}', function (Course $course, string $slug) {
-    $course->load(['categories', 'sections.modules']);
+    $course->load(['categories', 'sections.modules', 'instructorUser']);
     $category = $course->categories->pluck('name')->first() ?? '-';
 
     $totalSections = $course->sections->count();
@@ -70,7 +70,7 @@ Route::get('/course/{course}/{slug}', function (Course $course, string $slug) {
             ]),
             'category' => $category,
             'price' => $course->price ?? 0,
-            'instructor' => $course->instructor,
+            'instructor' => $course->instructorUser?->name ?? $course->instructor,
             'duration' => $course->duration,
             'features' => $course->features ?? [],
             'sections' => $course->sections,

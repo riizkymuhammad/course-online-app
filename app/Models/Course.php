@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Str;
+use App\Models\User;
 
 class Course extends Model
 {
@@ -17,6 +18,7 @@ class Course extends Model
         'description',
         'price',
         'instructor',
+        'instructor_id',
         'duration',
         'image',
         'features',
@@ -45,6 +47,11 @@ class Course extends Model
     public function categories()
     {
         return $this->belongsToMany(Category::class, 'category_courses')->withTimestamps();
+    }
+
+    public function instructorUser()
+    {
+        return $this->belongsTo(User::class, 'instructor_id');
     }
 
     public function categoryCourses()

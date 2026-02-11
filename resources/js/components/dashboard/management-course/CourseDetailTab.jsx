@@ -3,6 +3,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent } from "@/components/ui/card";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { BookOpen, Users, Clock, DollarSign, Plus, Trash2 } from "lucide-react";
 
 import CategoryMultiSelect from "./CategoryMultiSelect";
@@ -15,6 +16,7 @@ export default function CourseDetailTab({
   instructor,
   duration,
   features,
+  status,
   onInputChange,
   onFeatureChange,
   onAddFeature,
@@ -122,6 +124,24 @@ export default function CourseDetailTab({
               onChange={(e) => onInputChange("instructor", e.target.value)}
               className="border border-gray-200 rounded-lg h-10 focus:border-blue-400 focus:ring-blue-200"
             />
+          </div>
+
+          <div>
+            <Label className="text-sm font-semibold text-gray-900 mb-2 block">
+              Status
+            </Label>
+            <Select
+              value={status || "draft"}
+              onValueChange={(value) => onInputChange("status", value)}
+            >
+              <SelectTrigger className="h-10 border border-gray-200 rounded-lg text-sm focus:border-blue-400 focus:ring-blue-200">
+                <SelectValue placeholder="Pilih status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="draft">Draft</SelectItem>
+                <SelectItem value="published">Published</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
 
           <div>

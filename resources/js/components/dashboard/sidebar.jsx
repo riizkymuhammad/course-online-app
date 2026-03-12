@@ -14,29 +14,52 @@ import {
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 
-const menuItems = [
-  { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
-  { name: "Materi", href: "/dashboard/course", icon: BookOpen },
-  { name: "Pembelajaran", href: "/dashboard/learning", icon: BookMarked },
-  { name: "Profil", href: "/dashboard/profile", icon: User },
-]
-
-const managementItems = [
-  { name: "Manajemen Materi", href: "/dashboard/management-course", icon: Layers },
-  { name: "Manajemen Pengguna", href: "/dashboard/management-users", icon: Users },
-  { name: "Manajemen Pembelian", href: "/dashboard/purchases", icon: ShoppingCart },
-]
-
 export function DashboardSidebar({
   isOpen = true,
   onToggle = () => {},
   onClose = () => {},
 }) {
-  const { url } = usePage()
+  const { url, props } = usePage()
+  const user = props?.auth?.user
+  const role = user?.role || "student"
 
-  const name = "Admin"
-  const email = "admin@edukursus.com"
-  const initials = "AE"
+  const baseMenu = {
+    student: [
+      { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
+      { name: "Materi", href: "/dashboard/course", icon: BookOpen },
+      { name: "Pembelajaran", href: "/dashboard/learning", icon: BookMarked },
+      { name: "Transaksi Pembelian", href: "/dashboard/purchases", icon: ShoppingCart },
+      { name: "Profil", href: "/dashboard/profile", icon: User },
+    ],
+    fasilitator: [],
+    superadmin: [
+      { name: "Monitoring Pembelajaran", href: "/dashboard/learning", icon: BookMarked },
+    ],
+  }
+
+  const baseManagement = {
+    student: [],
+    fasilitator: [
+      { name: "Manajemen Materi", href: "/dashboard/management-course", icon: Layers },
+    ],
+    superadmin: [
+      { name: "Manajemen Materi", href: "/dashboard/management-course", icon: Layers },
+      { name: "Manajemen Pengguna", href: "/dashboard/management-users", icon: Users },
+      { name: "Manajemen Pembelian", href: "/dashboard/purchases", icon: ShoppingCart },
+    ],
+  }
+
+  const menuItems = baseMenu[role] || baseMenu.student
+  const managementItems = baseManagement[role] || baseManagement.student
+
+  const name = user?.name || "User"
+  const email = user?.email || "user@example.com"
+  const initials = name
+    .split(" ")
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0]?.toUpperCase())
+    .join("")
 
   const handleLogout = () => {
     // TODO: Hubungkan ke Inertia post('/logout') jika sudah siap
@@ -86,7 +109,8 @@ export function DashboardSidebar({
       {/* Navigation */}
       <nav className="flex-1 px-2.5 py-5 overflow-y-auto space-y-5">
         {/* Main Menu */}
-        <div>
+        {menuItems.length > 0 && (
+          <div>
           {isOpen && (
             <p className="px-3.5 text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2.5">
               Menu
@@ -116,10 +140,12 @@ export function DashboardSidebar({
               )
             })}
           </div>
-        </div>
+          </div>
+        )}
 
         {/* Management Menu */}
-        <div>
+        {managementItems.length > 0 && (
+          <div>
           {isOpen && (
             <p className="px-3.5 text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2.5">
               Manajemen
@@ -149,7 +175,8 @@ export function DashboardSidebar({
               )
             })}
           </div>
-        </div>
+          </div>
+        )}
       </nav>
 
       {/* Footer Card */}

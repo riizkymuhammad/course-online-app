@@ -1,30 +1,44 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import DashboardLayout from "@/layouts/DashboardLayout";
 import { BookOpen } from "lucide-react";
 import { PageHeader } from "@/molecules/PageHeader";
 import { ActionBar } from "@/molecules/ActionBar";
 import { ManagementCourseTable } from "@/organisms/ManagementCourseTable";
 import { router } from "@inertiajs/react";
+import { PaginationBar } from "@/components/dashboard/PaginationBar";
 
-export default function ManagementCourseIndex({ courses = [] }) {
-  const [q, setQ] = useState("");
+export default function ManagementCourseIndex({ courses = [], pagination = null, filters = {} }) {
+  const [q, setQ] = useState(filters.search ?? "");
+  const isFirstRender = useRef(true);
 
-  const filtered = useMemo(() => {
-    const keyword = q.trim().toLowerCase();
-    if (!keyword) return courses;
+  useEffect(() => {
+    setQ(filters.search ?? "");
+  }, [filters.search]);
 
-    return courses.filter((c) => {
-      const categoryLabel = Array.isArray(c.categories) && c.categories.length > 0
-        ? c.categories.map((cat) => cat.name).join(", ")
-        : "";
+  useEffect(() => {
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
+      return;
+    }
 
-      return (
-        c.title.toLowerCase().includes(keyword) ||
-        categoryLabel.toLowerCase().includes(keyword) ||
-        c.status.toLowerCase().includes(keyword)
+    const timeoutId = window.setTimeout(() => {
+      router.get(
+        route("dashboard.management-course"),
+        { search: q || undefined, page: 1 },
+        { preserveState: true, replace: true, preserveScroll: true }
       );
-    });
-  }, [q, courses]);
+    }, 300);
+
+    return () => window.clearTimeout(timeoutId);
+  }, [q]);
+
+  const handlePageChange = (page) => {
+    router.get(
+      route("dashboard.management-course"),
+      { search: q || undefined, page },
+      { preserveState: true, replace: true, preserveScroll: true }
+    );
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-white p-6 lg:p-8">
@@ -36,13 +50,14 @@ export default function ManagementCourseIndex({ courses = [] }) {
 
       <ActionBar
         searchPlaceholder="Cari course..."
+        searchValue={q}
         buttonLabel="Tambah Course"
         onSearchChange={setQ}
         onAdd={() => router.get(route("dashboard.management-course.create"))}
       />
 
       <ManagementCourseTable
-        courses={filtered}
+        courses={courses}
         onView={(course) =>
           router.get(
             route("dashboard.management-course.detail", {
@@ -65,6 +80,12 @@ export default function ManagementCourseIndex({ courses = [] }) {
             preserveScroll: true,
           });
         }}
+      />
+
+      <PaginationBar
+        pagination={pagination}
+        itemLabel="course"
+        onPageChange={handlePageChange}
       />
     </div>
   );

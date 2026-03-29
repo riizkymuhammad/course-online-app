@@ -1,8 +1,11 @@
 <?php
 
 use App\Http\Controllers\CourseImageController;
+use App\Http\Controllers\LearningPathController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\QuestionController;
 use App\Models\Course;
+use App\Models\Question;
 use Illuminate\Foundation\Application;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -32,12 +35,31 @@ Route::get('/', function () {
             ];
         });
 
+    $quizzes = Question::query()
+        ->with(['category', 'items'])
+        ->where('status', 'published')
+        ->latest()
+        ->take(4)
+        ->get()
+        ->map(function (Question $question) {
+            return [
+                'id' => $question->id,
+                'title' => $question->title,
+                'category' => $question->category?->name ?? '-',
+                'description' => $question->processing_notes,
+                'questions_count' => $question->items->count(),
+                'duration_minutes' => max(10, $question->items->count() * 2),
+                'href' => route('exam.quiz.show', ['question' => $question->id]),
+            ];
+        });
+
     return Inertia::render('Welcome', [
         'canLogin' => Route::has('login'),
         'canRegister' => Route::has('register'),
         'laravelVersion' => Application::VERSION,
         'phpVersion' => PHP_VERSION,
         'courses' => $courses,
+        'quizzes' => $quizzes,
     ]);
 });
 
@@ -89,6 +111,25 @@ Route::get('/course/{id}', function ($id) {
     return redirect("/course/{$course->uuid}/{$course->slug}");
 });
 
+Route::get('/exam/quiz/{question}', [QuestionController::class, 'examShow'])
+    ->name('exam.quiz.show');
+
+Route::post('/exam/quiz/{question}/start', [QuestionController::class, 'startTryout'])
+    ->middleware('auth')
+    ->name('exam.quiz.start');
+
+Route::get('/exam/{question}/tryout/{tryout}', [QuestionController::class, 'tryoutShow'])
+    ->middleware('auth')
+    ->name('exam.tryout.show');
+
+Route::post('/exam/{question}/tryout/{tryout}/finish', [QuestionController::class, 'finishTryout'])
+    ->middleware('auth')
+    ->name('exam.tryout.finish');
+
+Route::get('/exam/{question}/tryout/{tryout}/result', [QuestionController::class, 'tryoutResult'])
+    ->middleware('auth')
+    ->name('exam.tryout.result');
+
 
 Route::get('/dashboard', function () {
     return Inertia::render('Dashboard/Index');
@@ -102,9 +143,37 @@ Route::get('/dashboard/course', function () {
  return Inertia::render('Dashboard/Course');
 })->middleware(['auth', 'verified'])->name('dashboard.course');
 
+Route::get('/dashboard/tryout', [QuestionController::class, 'dashboardTryouts'])
+    ->middleware(['auth', 'verified'])
+    ->name('dashboard.tryout');
+
+Route::get('/dashboard/tryout/result', [QuestionController::class, 'dashboardTryoutResults'])
+    ->middleware(['auth', 'verified'])
+    ->name('dashboard.tryout.result');
+
+Route::get('/dashboard/tryout/result/{question}/{tryout}', [QuestionController::class, 'dashboardTryoutResult'])
+    ->middleware(['auth', 'verified'])
+    ->name('dashboard.result-tryout');
+
 
 Route::get('/dashboard/management-course', [\App\Http\Controllers\CourseController::class, 'index'])
     ->name('dashboard.management-course');
+
+Route::get('/dashboard/management-questions', [QuestionController::class, 'index'])
+    ->name('dashboard.management-questions');
+
+Route::get('/dashboard/management-learning-path', [LearningPathController::class, 'index'])
+    ->middleware(['auth', 'verified'])
+    ->name('dashboard.management-learning-path');
+
+Route::get('/dashboard/management-questions/create', [QuestionController::class, 'create'])
+    ->name('dashboard.management-questions.create');
+
+Route::get('/dashboard/management-questions/{question}', [QuestionController::class, 'show'])
+    ->name('dashboard.management-questions.detail');
+
+Route::post('/dashboard/management-questions', [QuestionController::class, 'store'])
+    ->name('dashboard.management-questions.store');
 
 Route::get('/dashboard/management-course/create', function () {
  return Inertia::render('Dashboard/ManagementCourse/Create');

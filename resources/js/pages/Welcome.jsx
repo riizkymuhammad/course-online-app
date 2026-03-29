@@ -13,6 +13,7 @@ import { Navbar } from "@/organisms/Navbar"
 import { HeroSlider } from "@/organisms/HeroSlider"
 import { CategoriesSection } from "@/organisms/CategoriesSection"
 import { CoursesSection } from "@/organisms/CoursesSection"
+import { QuizSection } from "@/organisms/QuizSection"
 import { WhatsAppCTA } from "@/organisms/WhatsAppCTA"
 import { Footer } from "@/organisms/Footer"
 
@@ -98,7 +99,7 @@ const socialLinks = [
    PAGE
 ===================================================== */
 
-export default function Welcome({ courses = [] }) {
+export default function Welcome({ courses = [], quizzes = [] }) {
   const whatsappNumber = "6281234567890"
   const whatsappMessage = encodeURIComponent(
     "Halo, saya ingin konsultasi mengenai kursus yang tersedia."
@@ -113,6 +114,7 @@ export default function Welcome({ courses = [] }) {
         <HeroSlider slides={slides} />
         <CategoriesSection categories={categories} />
         <CoursesSection courses={courses} />
+        <QuizSection quizzes={quizzes} />
         <WhatsAppCTA whatsappLink={whatsappLink} />
       </main>
 

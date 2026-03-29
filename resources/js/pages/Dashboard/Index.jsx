@@ -117,6 +117,7 @@ export default function DashboardIndex() {
             <Link
               key={menu.href}
               href={menu.href}
+              prefetch
               className="group relative bg-white rounded-2xl p-6 border border-slate-100 hover:border-blue-200 shadow-sm hover:shadow-xl hover:shadow-blue-100/50 transition-all duration-300 overflow-hidden"
             >
               <div className={`absolute top-0 right-0 w-32 h-32 bg-gradient-to-br ${menu.color} opacity-5 rounded-full -translate-y-16 translate-x-16 group-hover:scale-150 transition-transform duration-500`} />

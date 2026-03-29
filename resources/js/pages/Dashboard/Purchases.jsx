@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import React, { useMemo, useState } from "react";
 import DashboardLayout from "@/layouts/DashboardLayout"
 import { ShoppingCart, Calendar, CreditCard, Search, Plus } from "lucide-react";
 import { Input } from "@/components/ui/input";
@@ -8,9 +8,11 @@ import { InvoiceBadge } from "@/atoms/InvoiceBadge";
 import { PurchaseStatusBadge } from "@/atoms/PurhcaseStatusBadge";
 import { PurchaseActions } from "@/atoms/PurchaseActions";
 import { PurchaseBuyer } from "@/molecules/PurchaseBuyer";
+import { PaginationBar } from "@/components/dashboard/PaginationBar";
 
 export default function PurchasesIndex() {
   const [search, setSearch] = useState("");
+  const [page, setPage] = useState(1);
 
   const purchases = [
     { id: "INV001", buyer: "Ahmad Rizki", course: "React Basics", amount: "Rp 299.000", date: "10 Mar 2024", status: "Completed", avatar: "AR" },
@@ -27,6 +29,32 @@ export default function PurchasesIndex() {
         p.course.toLowerCase().includes(q)
     );
   }, [search]);
+
+  const perPage = 5;
+  const totalPages = Math.max(1, Math.ceil(filtered.length / perPage));
+  const paginatedPurchases = useMemo(() => {
+    const start = (page - 1) * perPage;
+    return filtered.slice(start, start + perPage);
+  }, [filtered, page]);
+
+  const pagination = {
+    current_page: page,
+    last_page: totalPages,
+    per_page: perPage,
+    total: filtered.length,
+    from: filtered.length === 0 ? 0 : (page - 1) * perPage + 1,
+    to: Math.min(page * perPage, filtered.length),
+  };
+
+  React.useEffect(() => {
+    setPage(1);
+  }, [search]);
+
+  React.useEffect(() => {
+    if (page > totalPages) {
+      setPage(totalPages);
+    }
+  }, [page, totalPages]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-white p-6 lg:p-8">
@@ -77,7 +105,7 @@ export default function PurchasesIndex() {
           </thead>
 
           <tbody>
-            {filtered.map((p) => (
+            {paginatedPurchases.map((p) => (
               <tr key={p.id} className="border-b hover:bg-blue-50/30">
                 <td className="px-6 py-4">
                   <InvoiceBadge id={p.id} />
@@ -111,6 +139,12 @@ export default function PurchasesIndex() {
           </tbody>
         </table>
       </div>
+
+      <PaginationBar
+        pagination={pagination}
+        itemLabel="pembelian"
+        onPageChange={setPage}
+      />
     </div>
   );
 }

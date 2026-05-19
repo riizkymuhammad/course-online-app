@@ -11,6 +11,7 @@ class Question extends Model
 
     protected $fillable = [
         'title',
+        'assessment_type',
         'category_id',
         'status',
         'is_generate_ai',

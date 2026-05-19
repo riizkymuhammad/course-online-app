@@ -75,6 +75,7 @@ function SummaryCard({ icon: Icon, label, value }) {
 }
 
 export default function QuizPage({ question }) {
+  const isQuiz = question.assessment_type === "quiz";
   const questionCount = question.items.length;
   const durationMinutes = estimateMinutes(questionCount);
   const instructors = question.instructors.map((item) => item.name).join(", ") || "-";
@@ -146,11 +147,12 @@ export default function QuizPage({ question }) {
           <div className="mt-8 flex justify-end">
             <aside className="w-full space-y-6 lg:max-w-md lg:sticky lg:top-6 lg:self-start">
               <section className="rounded-[32px] border border-slate-200 bg-white p-6 shadow-sm">
-                <h2 className="text-xl font-semibold text-slate-900">Mulai Tryout</h2>
-                <p className="mt-2 text-sm leading-6 text-slate-500">
-                  Tombol di bawah akan membuat data tryout baru untuk user aktif dan membuka halaman
-                  pengerjaan di URL `/exam/{question.id}/tryout/[id tryout]`.
-                </p>
+                  <h2 className="text-xl font-semibold text-slate-900">{isQuiz ? "Mulai Quiz" : "Mulai Tryout"}</h2>
+                  <p className="mt-2 text-sm leading-6 text-slate-500">
+                  {isQuiz
+                    ? "Halaman ini menampilkan quiz pembelajaran yang tersusun mengikuti alur materi. Saat tombol mulai ditekan, sistem akan membuka sesi pengerjaan untuk user aktif."
+                    : "Tombol di bawah akan membuat data tryout baru untuk user aktif dan membuka halaman pengerjaan di URL `/exam/{question.id}/tryout/[id tryout]`."}
+                  </p>
 
                 <div className="mt-5 space-y-4 border-y border-slate-100 py-5">
                   <InfoRow label="Jumlah Soal" value={`${questionCount} soal`} />
@@ -166,11 +168,11 @@ export default function QuizPage({ question }) {
                     className="inline-flex h-11 w-full items-center justify-center rounded-2xl bg-blue-600 px-4 text-sm font-semibold text-white transition hover:bg-blue-700"
                   >
                     <Play className="mr-2 h-4 w-4" />
-                    Mulai Ujian
+                    {isQuiz ? "Mulai Quiz" : "Mulai Ujian"}
                   </Link>
 
                   <Link
-                    href={`/dashboard/management-questions/${question.id}`}
+                    href={isQuiz ? `/dashboard/management-quiz/${question.id}` : `/dashboard/management-questions/${question.id}?context=tryout`}
                     className="inline-flex h-11 w-full items-center justify-center rounded-2xl border border-slate-200 bg-white px-4 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
                   >
                     Detail Dashboard

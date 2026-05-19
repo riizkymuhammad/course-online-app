@@ -25,53 +25,125 @@ class QuestionController extends Controller
     {
     }
 
-    public function index()
+    public function index(Request $request)
     {
-        $search = trim((string) request('search', ''));
+        return $this->renderManagementIndex($request, 'tryout');
+    }
 
-        $questions = Question::query()
-            ->with(['category', 'instructors:id,name'])
-            ->withCount('items')
-            ->when($search !== '', function ($query) use ($search) {
-                $query->where(function ($subQuery) use ($search) {
-                    $subQuery
-                        ->where('title', 'like', "%{$search}%")
-                        ->orWhere('status', 'like', "%{$search}%")
-                        ->orWhereHas('category', fn ($categoryQuery) => $categoryQuery->where('name', 'like', "%{$search}%"))
-                        ->orWhereHas('instructors', fn ($instructorQuery) => $instructorQuery->where('name', 'like', "%{$search}%"));
-                });
-            })
-            ->latest()
-            ->paginate(10)
-            ->withQueryString()
-            ->through(function (Question $question) {
-                return [
-                    'id' => $question->id,
-                    'title' => $question->title,
-                    'category' => $question->category?->name ?? '-',
-                    'instructor' => $question->instructors->pluck('name')->implode(', ') ?: '-',
-                    'status' => $question->status,
-                    'questions_count' => $question->items_count,
-                ];
-            });
+    public function quizIndex(Request $request)
+    {
+        return $this->renderManagementIndex($request, 'quiz');
+    }
 
-        return Inertia::render('Dashboard/ManagementQuestion', [
-            'questions' => $questions->items(),
-            'pagination' => [
-                'current_page' => $questions->currentPage(),
-                'last_page' => $questions->lastPage(),
-                'per_page' => $questions->perPage(),
-                'total' => $questions->total(),
-                'from' => $questions->firstItem() ?? 0,
-                'to' => $questions->lastItem() ?? 0,
-            ],
-            'filters' => [
-                'search' => $search,
-            ],
+    public function create(Request $request)
+    {
+        $context = $this->resolveManagementContext($request->query('context'));
+
+        return Inertia::render('Dashboard/ManagementQuestion/Create', [
+            'context' => $context,
+            'instructors' => $this->getInstructors(),
+            'statuses' => $this->getStatuses(),
         ]);
     }
 
-    public function create()
+    public function quizCreate()
+    {
+        return Inertia::render('Dashboard/ManagementQuiz/Create', [
+            'categories' => $this->getCategoryOptions(),
+            'instructors' => $this->getFormattedInstructors(),
+            'statuses' => $this->getStatuses(),
+        ]);
+    }
+
+    public function edit(Request $request, Question $question)
+    {
+        $context = $this->resolveManagementContext($request->query('context') ?: $question->assessment_type);
+        $question->load(['category', 'instructors', 'items']);
+
+        return Inertia::render('Dashboard/ManagementQuestion/Create', [
+            'context' => $context,
+            'mode' => 'edit',
+            'question' => $this->formatQuestionForEdit($question),
+            'instructors' => $this->getInstructors(),
+            'statuses' => $this->getStatuses(),
+        ]);
+    }
+
+    public function quizEdit(Question $question)
+    {
+        $question->load(['category', 'instructors', 'items']);
+
+        return Inertia::render('Dashboard/ManagementQuiz/Create', [
+            'mode' => 'edit',
+            'question' => $this->formatQuestionForEdit($question),
+            'categories' => $this->getCategoryOptions(),
+            'instructors' => $this->getFormattedInstructors(),
+            'statuses' => $this->getStatuses(),
+        ]);
+    }
+
+    public function update(Request $request, Question $question)
+    {
+        Log::info('Question update request received', [
+            'question_id' => $question->id,
+            'assessment_type' => $question->assessment_type,
+            'title' => $request->input('title'),
+            'status' => $request->input('status'),
+            'category_names_count' => count((array) $request->input('category_names', [])),
+            'instructor_count' => count((array) $request->input('instructor_ids', [])),
+        ]);
+
+        $data = $this->validateQuestionUpdate($request, $question);
+
+        Log::info('Question update validation passed', [
+            'question_id' => $question->id,
+            'assessment_type' => $question->assessment_type,
+            'title' => $data['title'],
+            'status' => $data['status'],
+        ]);
+
+        if ($question->assessment_type === 'quiz') {
+            $categoryNames = array_values($data['category_names'] ?? []);
+            $data['category_name'] = $categoryNames[0] ?? null;
+        }
+
+        $category = null;
+        if (! empty($data['category_name'])) {
+            $category = Category::firstOrCreate(
+                ['name' => $data['category_name']],
+                ['slug' => Str::slug($data['category_name'])]
+            );
+        }
+
+        $question->update([
+            'title' => $data['title'],
+            'category_id' => $category?->id,
+            'status' => $data['status'],
+        ]);
+
+        $question->instructors()->sync(array_map('intval', $data['instructor_ids'] ?? []));
+
+        Log::info('Question update completed', [
+            'question_id' => $question->id,
+            'assessment_type' => $question->assessment_type,
+            'status' => $question->fresh()->status,
+        ]);
+
+        return redirect()
+            ->route(
+                $question->assessment_type === 'quiz'
+                    ? 'dashboard.management-quiz.edit'
+                    : 'dashboard.management-questions.edit',
+                $question->assessment_type === 'quiz'
+                    ? ['question' => $question->id]
+                    : ['question' => $question->id, 'context' => 'tryout']
+            )
+            ->with('success', $question->assessment_type === 'quiz'
+                ? 'Quiz berhasil diperbarui.'
+                : 'Tryout berhasil diperbarui.');
+    }
+
+    private function getInstructors()
     {
         $instructors = User::query()
             ->whereIn('role', ['fasilitator', 'superadmin'])
@@ -84,17 +156,41 @@ class QuestionController extends Controller
                 ->get(['id', 'name', 'email']);
         }
 
-        return Inertia::render('Dashboard/ManagementQuestion/Create', [
-            'instructors' => $instructors,
-            'statuses' => [
-                ['label' => 'Draft', 'value' => 'draft'],
-                ['label' => 'Terbit', 'value' => 'published'],
-            ],
-        ]);
+        return $instructors;
     }
 
-    public function show(Question $question)
+    private function getFormattedInstructors()
     {
+        return $this->getInstructors()->map(fn (User $user) => [
+            'label' => $user->name,
+            'value' => (string) $user->id,
+            'description' => $user->email,
+        ])->values();
+    }
+
+    private function getCategoryOptions()
+    {
+        return Category::query()
+            ->orderBy('name')
+            ->get(['name'])
+            ->map(fn (Category $category) => [
+                'label' => $category->name,
+                'value' => $category->name,
+            ])
+            ->values();
+    }
+
+    private function getStatuses(): array
+    {
+        return [
+            ['label' => 'Draft', 'value' => 'draft'],
+            ['label' => 'Terbit', 'value' => 'published'],
+        ];
+    }
+
+    public function show(Request $request, Question $question)
+    {
+        $context = $this->resolveManagementContext($request->query('context') ?: $question->assessment_type);
         $question->load(['category', 'instructors', 'items.answers']);
 
         $questionItems = $question->items->map(function (QuestionItem $item) {
@@ -116,9 +212,11 @@ class QuestionController extends Controller
         })->values();
 
         return Inertia::render('Dashboard/ManagementQuestion/Detail', [
+            'context' => $context,
             'question' => [
                 'id' => $question->id,
                 'title' => $question->title,
+                'assessment_type' => $question->assessment_type,
                 'category' => $question->category?->name ?? '-',
                 'status' => $question->status,
                 'is_generate_ai' => (bool) $question->is_generate_ai,
@@ -150,6 +248,11 @@ class QuestionController extends Controller
                 'items' => $questionItems,
             ],
         ]);
+    }
+
+    public function quizShow(Question $question)
+    {
+        return $this->show(request()->merge(['context' => 'quiz']), $question);
     }
 
     public function examShow(Question $question)
@@ -272,6 +375,7 @@ class QuestionController extends Controller
         $search = trim((string) $request->query('search', ''));
 
         $questions = Question::query()
+            ->where('assessment_type', 'tryout')
             ->with('category')
             ->withCount('items')
             ->withCount([
@@ -343,6 +447,7 @@ class QuestionController extends Controller
 
         $tryouts = Tryout::query()
             ->with(['question.category', 'user'])
+            ->whereHas('question', fn ($query) => $query->where('assessment_type', 'tryout'))
             ->when(! $isAdmin, fn ($query) => $query->where('user_id', $user->id))
             ->where('status', 'finished')
             ->when($search !== '', function ($query) use ($search) {
@@ -443,12 +548,39 @@ class QuestionController extends Controller
         @set_time_limit(300);
         @ini_set('max_execution_time', '300');
 
+        Log::info('Question store request received', [
+            'title' => $request->input('title'),
+            'assessment_type' => $request->input('assessment_type'),
+            'has_material_file' => $request->hasFile('material_file'),
+            'has_question_file' => $request->hasFile('question_file'),
+            'has_answer_key_file' => $request->hasFile('answer_key_file'),
+            'category_count' => count((array) $request->input('category_names', [])),
+            'instructor_count' => count((array) $request->input('instructor_ids', [])),
+        ]);
+
         $data = $this->validateQuestion($request);
         $data = $this->normalizeStoreData($data);
 
+        Log::info('Question store validation passed', [
+            'title' => $data['title'],
+            'assessment_type' => $data['assessment_type'],
+            'is_generate_ai' => (bool) $data['is_generate_ai'],
+            'category_count' => count($data['category_names'] ?? []),
+            'instructor_count' => count($data['instructor_ids'] ?? []),
+        ]);
+
+        if ($data['assessment_type'] === 'quiz' && count($data['category_names'] ?? []) > 0) {
+            Log::info('Quiz category metadata received', [
+                'title' => $data['title'],
+                'selected_categories' => array_values($data['category_names'] ?? []),
+            ]);
+        }
+
         if ((bool) $data['is_generate_ai'] && empty($data['material_file'])) {
             throw ValidationException::withMessages([
-                'material_file' => 'File materi wajib diunggah jika generate AI diaktifkan.',
+                'material_file' => $data['assessment_type'] === 'quiz'
+                    ? 'File materi wajib diunggah untuk generate quiz.'
+                    : 'File materi wajib diunggah jika generate AI diaktifkan.',
             ]);
         }
 
@@ -465,6 +597,10 @@ class QuestionController extends Controller
         }
 
         $category = null;
+        if ($data['assessment_type'] === 'quiz' && count($data['category_names'] ?? []) > 0) {
+            $data['category_name'] = $data['category_names'][0];
+        }
+
         if (! empty($data['category_name'])) {
             $category = Category::firstOrCreate(
                 ['name' => $data['category_name']],
@@ -487,6 +623,7 @@ class QuestionController extends Controller
         try {
             Log::info('Question store started', [
                 'title' => $data['title'],
+                'assessment_type' => $data['assessment_type'],
                 'is_generate_ai' => (bool) $data['is_generate_ai'],
                 'ai_question_count' => $data['ai_question_count'] ?? null,
                 'has_material_file' => ! empty($materialPath),
@@ -494,17 +631,39 @@ class QuestionController extends Controller
                 'has_answer_key_file' => ! empty($answerKeyPath),
             ]);
 
+            Log::info('Question AI generation starting', [
+                'title' => $data['title'],
+                'assessment_type' => $data['assessment_type'],
+                'source' => ! empty($materialPath)
+                    ? 'uploaded_material'
+                    : 'question_file',
+            ]);
+
             $processedPayload = $this->questionAiService->process(new Question(), $data);
 
             Log::info('Question AI processing finished', [
                 'title' => $data['title'],
+                'assessment_type' => $data['assessment_type'],
                 'generated_questions' => count($processedPayload['question_payload'] ?? []),
                 'generated_answer_keys' => count($processedPayload['answer_key_payload'] ?? []),
             ]);
 
+            Log::info(
+                $data['assessment_type'] === 'quiz'
+                    ? 'Quiz question generation completed successfully'
+                    : 'Tryout question generation completed successfully',
+                [
+                    'title' => $data['title'],
+                    'assessment_type' => $data['assessment_type'],
+                    'generated_questions' => count($processedPayload['question_payload'] ?? []),
+                    'generated_answer_keys' => count($processedPayload['answer_key_payload'] ?? []),
+                ]
+            );
+
             DB::transaction(function () use ($data, $category, $materialPath, $questionPath, $answerKeyPath, $processedPayload) {
                 $question = Question::create([
                     'title' => $data['title'],
+                    'assessment_type' => $data['assessment_type'],
                     'category_id' => $category?->id,
                     'status' => $data['status'],
                     'is_generate_ai' => (bool) $data['is_generate_ai'],
@@ -525,6 +684,7 @@ class QuestionController extends Controller
 
             Log::info('Question stored successfully', [
                 'title' => $data['title'],
+                'assessment_type' => $data['assessment_type'],
             ]);
         } catch (\Throwable $exception) {
             $this->deleteStoredFile($materialPath);
@@ -533,6 +693,8 @@ class QuestionController extends Controller
 
             Log::error('Question store failed', [
                 'title' => $data['title'] ?? null,
+                'assessment_type' => $data['assessment_type'] ?? null,
+                'exception' => $exception::class,
                 'message' => $exception->getMessage(),
             ]);
 
@@ -542,12 +704,26 @@ class QuestionController extends Controller
         }
 
         return redirect()
-            ->route('dashboard.management-questions')
-            ->with('success', 'Soal berhasil disimpan.');
+            ->route(
+                $data['assessment_type'] === 'quiz'
+                    ? 'dashboard.management-quiz'
+                    : 'dashboard.management-questions'
+            )
+            ->with('success', $data['assessment_type'] === 'quiz' ? 'Quiz berhasil disimpan.' : 'Tryout berhasil disimpan.');
     }
 
     private function normalizeStoreData(array $data): array
     {
+        if (($data['assessment_type'] ?? 'tryout') === 'quiz') {
+            $data['is_generate_ai'] = true;
+            $data['question_file'] = null;
+            $data['answer_key_file'] = null;
+            $data['has_answer_key'] = true;
+            $data['generate_answer_key'] = true;
+            $data['category_name'] = null;
+            $data['instructor_ids'] = array_map('intval', $data['instructor_ids'] ?? []);
+        }
+
         if ((bool) $data['is_generate_ai']) {
             $data['question_file'] = null;
             $data['answer_key_file'] = null;
@@ -566,7 +742,10 @@ class QuestionController extends Controller
     {
         return $request->validate([
             'title' => ['required', 'string', 'max:255'],
+            'assessment_type' => ['required', 'in:quiz,tryout'],
             'category_name' => ['nullable', 'string', 'max:100'],
+            'category_names' => ['nullable', 'array'],
+            'category_names.*' => ['required', 'string', 'max:100'],
             'status' => ['required', 'in:draft,published'],
             'instructor_ids' => ['required', 'array', 'min:1'],
             'instructor_ids.*' => ['required', 'integer', 'exists:users,id'],
@@ -578,6 +757,51 @@ class QuestionController extends Controller
             'answer_key_file' => ['nullable', 'file', 'mimes:pdf,doc,docx,txt', 'max:10240'],
             'generate_answer_key' => ['nullable', 'boolean'],
         ]);
+    }
+
+    private function validateQuestionUpdate(Request $request, Question $question): array
+    {
+        return $request->validate([
+            'title' => ['required', 'string', 'max:255'],
+            'status' => ['required', 'in:draft,published'],
+            'category_name' => ['nullable', 'string', 'max:100'],
+            'category_names' => ['nullable', 'array'],
+            'category_names.*' => ['required', 'string', 'max:100'],
+            'instructor_ids' => ['required', 'array', 'min:1'],
+            'instructor_ids.*' => ['required', 'integer', 'exists:users,id'],
+        ]);
+    }
+
+    private function formatQuestionForEdit(Question $question): array
+    {
+        return [
+            'id' => $question->id,
+            'title' => $question->title,
+            'assessment_type' => $question->assessment_type,
+            'category_name' => $question->category?->name,
+            'category_names' => $question->category ? [$question->category->name] : [],
+            'status' => $question->status,
+            'is_generate_ai' => (bool) $question->is_generate_ai,
+            'ai_question_count' => $question->ai_question_count ?: $question->items->count(),
+            'has_answer_key' => (bool) $question->has_answer_key,
+            'generate_answer_key' => (bool) $question->generate_answer_key,
+            'instructor_ids' => $question->instructors->pluck('id')->map(fn ($id) => (int) $id)->values()->all(),
+            'items_count' => $question->items->count(),
+            'files' => [
+                'material' => $question->material_file_path ? [
+                    'name' => basename($question->material_file_path),
+                    'url' => Storage::disk('public')->url($question->material_file_path),
+                ] : null,
+                'question' => $question->question_file_path ? [
+                    'name' => basename($question->question_file_path),
+                    'url' => Storage::disk('public')->url($question->question_file_path),
+                ] : null,
+                'answer_key' => $question->answer_key_file_path ? [
+                    'name' => basename($question->answer_key_file_path),
+                    'url' => Storage::disk('public')->url($question->answer_key_file_path),
+                ] : null,
+            ],
+        ];
     }
 
     private function deleteStoredFile(?string $path): void
@@ -616,6 +840,7 @@ class QuestionController extends Controller
         return [
             'id' => $question->id,
             'title' => $question->title,
+            'assessment_type' => $question->assessment_type,
             'category' => $question->category?->name ?? '-',
             'status' => $question->status,
             'is_generate_ai' => (bool) $question->is_generate_ai,
@@ -735,5 +960,59 @@ class QuestionController extends Controller
             ],
             'items' => $items,
         ];
+    }
+
+    private function renderManagementIndex(Request $request, string $context)
+    {
+        $search = trim((string) $request->query('search', ''));
+        $context = $this->resolveManagementContext($context);
+
+        $questions = Question::query()
+            ->with(['category', 'instructors:id,name'])
+            ->withCount('items')
+            ->where('assessment_type', $context)
+            ->when($search !== '', function ($query) use ($search) {
+                $query->where(function ($subQuery) use ($search) {
+                    $subQuery
+                        ->where('title', 'like', "%{$search}%")
+                        ->orWhere('status', 'like', "%{$search}%")
+                        ->orWhereHas('category', fn ($categoryQuery) => $categoryQuery->where('name', 'like', "%{$search}%"))
+                        ->orWhereHas('instructors', fn ($instructorQuery) => $instructorQuery->where('name', 'like', "%{$search}%"));
+                });
+            })
+            ->latest()
+            ->paginate(10)
+            ->withQueryString()
+            ->through(function (Question $question) {
+                return [
+                    'id' => $question->id,
+                    'title' => $question->title,
+                    'category' => $question->category?->name ?? '-',
+                    'instructor' => $question->instructors->pluck('name')->implode(', ') ?: '-',
+                    'status' => $question->status,
+                    'questions_count' => $question->items_count,
+                ];
+            });
+
+        return Inertia::render('Dashboard/ManagementQuestion', [
+            'context' => $context,
+            'questions' => $questions->items(),
+            'pagination' => [
+                'current_page' => $questions->currentPage(),
+                'last_page' => $questions->lastPage(),
+                'per_page' => $questions->perPage(),
+                'total' => $questions->total(),
+                'from' => $questions->firstItem() ?? 0,
+                'to' => $questions->lastItem() ?? 0,
+            ],
+            'filters' => [
+                'search' => $search,
+            ],
+        ]);
+    }
+
+    private function resolveManagementContext(?string $context): string
+    {
+        return $context === 'quiz' ? 'quiz' : 'tryout';
     }
 }

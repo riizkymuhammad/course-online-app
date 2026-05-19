@@ -156,8 +156,18 @@ function QuestionCard({ item }) {
   );
 }
 
-export default function QuestionDetailPage({ question }) {
+export default function QuestionDetailPage({ question, context = "tryout" }) {
   const [activeTab, setActiveTab] = useState("overview");
+  const isQuiz = context === "quiz";
+  const managementLabel = isQuiz ? "Manajemen Quiz" : "Manajemen Tryout";
+  const managementUrl = isQuiz ? "/dashboard/management-quiz" : "/dashboard/management-questions";
+  const editUrl = isQuiz
+    ? `/dashboard/management-quiz/${question.id}/edit`
+    : `/dashboard/management-questions/${question.id}/edit?context=tryout`;
+  const packageLabel = isQuiz ? "quiz" : "tryout";
+  const detailLabel = isQuiz ? "Detail Quiz" : "Detail Tryout";
+  const packageAboutTitle = isQuiz ? "Tentang Paket Quiz" : "Tentang Paket Soal";
+  const openExamLabel = isQuiz ? "Buka Halaman Quiz" : "Buka Halaman Exam";
 
   const generatedCount = question.ai_question_count || question.items.length;
 
@@ -177,7 +187,7 @@ export default function QuestionDetailPage({ question }) {
 
   return (
     <>
-      <Head title={`${question.title} | Manajemen Tryout`} />
+      <Head title={`${question.title} | ${managementLabel}`} />
 
       <div className="min-h-screen bg-slate-50">
         <div className="border-b border-slate-200 bg-white">
@@ -197,10 +207,10 @@ export default function QuestionDetailPage({ question }) {
                 <BreadcrumbItem>
                   <BreadcrumbLink asChild>
                     <Link
-                      href="/dashboard/management-questions"
+                      href={managementUrl}
                       className="text-slate-500 hover:text-slate-900"
                     >
-                      Manajemen Tryout
+                      {managementLabel}
                     </Link>
                   </BreadcrumbLink>
                 </BreadcrumbItem>
@@ -209,7 +219,7 @@ export default function QuestionDetailPage({ question }) {
                 </BreadcrumbSeparator>
                 <BreadcrumbItem>
                   <BreadcrumbPage className="font-medium text-slate-900">
-                    Detail Pengerjaan Soal
+                    {detailLabel}
                   </BreadcrumbPage>
                 </BreadcrumbItem>
               </BreadcrumbList>
@@ -225,7 +235,7 @@ export default function QuestionDetailPage({ question }) {
                   <div className="max-w-3xl">
                     <div className="inline-flex items-center gap-2 rounded-2xl bg-white/15 px-4 py-2 text-sm font-semibold backdrop-blur-sm">
                       <Sparkles className="h-4 w-4" />
-                      Ujian Pilihan Ganda
+                      {isQuiz ? "Quiz Pembelajaran" : "Tryout Pilihan Ganda"}
                     </div>
 
                     <h1 className="mt-5 text-3xl font-bold leading-tight md:text-5xl">
@@ -281,7 +291,7 @@ export default function QuestionDetailPage({ question }) {
                   <div className="grid gap-8 lg:grid-cols-3">
                     <div className="space-y-8 lg:col-span-2">
                       <SectionCard
-                        title="Tentang Paket Soal"
+                        title={packageAboutTitle}
                         description="Blok ini mengikuti pola halaman detail ujian modern: menjelaskan konteks ujian sebelum peserta atau admin masuk ke daftar soal."
                       >
                         <div className="space-y-4 text-sm leading-7 text-slate-600">
@@ -385,6 +395,17 @@ export default function QuestionDetailPage({ question }) {
                               type="button"
                               variant="outline"
                               className="h-11 w-full rounded-2xl border-slate-200"
+                              asChild
+                            >
+                              <Link href={editUrl}>
+                                Edit Paket
+                              </Link>
+                            </Button>
+
+                            <Button
+                              type="button"
+                              variant="outline"
+                              className="h-11 w-full rounded-2xl border-slate-200"
                               onClick={() => window.history.back()}
                             >
                                 Kembali ke daftar
@@ -394,7 +415,7 @@ export default function QuestionDetailPage({ question }) {
                               href={`/exam/quiz/${question.id}`}
                               className="inline-flex h-11 w-full items-center justify-center rounded-2xl border border-slate-200 bg-white px-4 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
                             >
-                              Buka Halaman Exam
+                              {openExamLabel}
                             </Link>
                           </div>
                         </section>
@@ -480,7 +501,7 @@ export default function QuestionDetailPage({ question }) {
                           </p>
                         </div>
                         <div className="rounded-2xl bg-white px-4 py-3 text-sm text-slate-600 ring-1 ring-slate-200">
-                          Total {question.items.length} soal pilihan ganda
+                          Total {question.items.length} soal pilihan ganda dalam paket {packageLabel}
                         </div>
                       </div>
                     </div>

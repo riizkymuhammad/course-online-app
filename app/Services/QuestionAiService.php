@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\Question;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Log;
 use RuntimeException;
 
 class QuestionAiService
@@ -15,6 +16,22 @@ class QuestionAiService
     public function process(Question $question, array $data): array
     {
         $this->guardAvailability();
+
+        Log::info('Question AI service entered', [
+            'title' => $data['title'] ?? null,
+            'assessment_type' => $data['assessment_type'] ?? 'tryout',
+            'has_material_file' => ! empty($data['material_file']),
+            'selected_materials_count' => count($data['selected_materials'] ?? []),
+            'is_generate_ai' => (bool) ($data['is_generate_ai'] ?? false),
+        ]);
+
+        if (($data['assessment_type'] ?? 'tryout') === 'quiz') {
+            if (empty($data['material_file'])) {
+                throw new RuntimeException('File materi wajib diunggah untuk generate quiz.');
+            }
+
+            return $this->generateQuizQuestionsFromUploadedMaterial($data);
+        }
 
         return $data['is_generate_ai']
             ? $this->generateQuestionsFromMaterial($data)
@@ -39,6 +56,11 @@ class QuestionAiService
         $attachment = $this->storeAttachment($data['material_file']);
         $requestedCount = (int) $data['ai_question_count'];
 
+        Log::info('Tryout AI generation started from uploaded material', [
+            'title' => $data['title'] ?? null,
+            'requested_count' => $requestedCount,
+        ]);
+
         $response = \Laravel\Ai\agent(
             instructions: 'Anda adalah penyusun ujian profesional. Buat soal pilihan ganda berbahasa Indonesia yang jelas, relevan, dan hanya berdasarkan materi terlampir. Jawaban wajib berbentuk JSON valid tanpa markdown.'
         )->prompt(
@@ -52,6 +74,11 @@ class QuestionAiService
             model: self::GEMINI_MODEL,
             timeout: self::GEMINI_TIMEOUT
         );
+
+        Log::info('Tryout AI generation response received', [
+            'title' => $data['title'] ?? null,
+            'response_length' => strlen((string) ($response->text ?? '')),
+        ]);
 
         $payload = $this->normalizeQuestionSet(
             $this->decodeJsonResponse($response->text ?? ''),
@@ -67,9 +94,59 @@ class QuestionAiService
         ];
     }
 
+    private function generateQuizQuestionsFromUploadedMaterial(array $data): array
+    {
+        $attachment = $this->storeAttachment($data['material_file']);
+        $requestedCount = (int) ($data['ai_question_count'] ?? 10);
+
+        Log::info('Quiz AI generation started from uploaded material', [
+            'title' => $data['title'] ?? null,
+            'requested_count' => $requestedCount,
+        ]);
+
+        $response = \Laravel\Ai\agent(
+            instructions: 'Anda adalah penyusun quiz pembelajaran profesional. Buat soal pilihan ganda berbahasa Indonesia yang runtut mengikuti urutan materi pada dokumen terlampir. Jawaban wajib berbentuk JSON valid tanpa markdown.'
+        )->prompt(
+            'Buat tepat ' . $requestedCount . ' soal pilihan ganda dari materi terlampir. '
+            . 'Aturan wajib: susun soal secara bertahap mengikuti urutan pembahasan materi, jangan acak topik, '
+            . 'setiap soal harus memiliki tepat 4 opsi jawaban, hanya 1 jawaban benar, dan opsi ditulis sebagai array 4 item. '
+            . 'Kembalikan JSON dengan format: '
+            . '{"questions":[{"question":"","options":["","","",""],"correct_option":"A","explanation":""}],"notes":""}. '
+            . 'correct_option hanya boleh A, B, C, atau D.',
+            attachments: [$attachment],
+            provider: self::GEMINI_PROVIDER,
+            model: self::GEMINI_MODEL,
+            timeout: self::GEMINI_TIMEOUT
+        );
+
+        Log::info('Quiz AI generation response received from uploaded material', [
+            'title' => $data['title'] ?? null,
+            'response_length' => strlen((string) ($response->text ?? '')),
+        ]);
+
+        $payload = $this->normalizeQuestionSet(
+            $this->decodeJsonResponse($response->text ?? ''),
+            $requestedCount
+        );
+
+        return [
+            'question_payload' => $payload['questions'] ?? [],
+            'answer_key_payload' => $payload['answer_key'] ?? [],
+            'processing_notes' => $payload['notes'] ?? "Quiz dibuat dari file materi terunggah sebanyak {$requestedCount} soal.",
+            'generate_answer_key' => true,
+            'has_answer_key' => true,
+        ];
+    }
+
     private function processQuestionFiles(Question $question, array $data): array
     {
         $attachments = [$this->storeAttachment($data['question_file'])];
+
+        Log::info('Manual question file processing started', [
+            'title' => $data['title'] ?? null,
+            'has_answer_key_file' => ! empty($data['answer_key_file']),
+            'generate_answer_key' => (bool) ($data['generate_answer_key'] ?? false),
+        ]);
 
         $prompt = 'Ekstrak semua soal pilihan ganda dari file terlampir dan kembalikan JSON valid tanpa markdown. '
             . 'Format JSON: {"questions":[{"question":"","options":["","","",""],"correct_option":"A","explanation":""}],"notes":""}. '
@@ -100,6 +177,11 @@ class QuestionAiService
             model: self::GEMINI_MODEL,
             timeout: self::GEMINI_TIMEOUT
         );
+
+        Log::info('Manual question file processing response received', [
+            'title' => $data['title'] ?? null,
+            'response_length' => strlen((string) ($response->text ?? '')),
+        ]);
 
         $payload = $this->normalizeQuestionSet($this->decodeJsonResponse($response->text ?? ''));
 

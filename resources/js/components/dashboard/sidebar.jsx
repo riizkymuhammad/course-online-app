@@ -47,11 +47,13 @@ export function DashboardSidebar({
     student: [],
     fasilitator: [
       { name: "Manajemen Materi", href: "/dashboard/management-course", icon: Layers },
+      { name: "Manajemen Quiz", href: "/dashboard/management-quiz", icon: FileText },
       { name: "Manajemen Tryout", href: "/dashboard/management-questions", icon: FileText },
       { name: "Manajemen Learning Path", href: "/dashboard/management-learning-path", icon: BookMarked },
     ],
     superadmin: [
       { name: "Manajemen Materi", href: "/dashboard/management-course", icon: Layers },
+      { name: "Manajemen Quiz", href: "/dashboard/management-quiz", icon: FileText },
       { name: "Manajemen Tryout", href: "/dashboard/management-questions", icon: FileText },
       { name: "Manajemen Learning Path", href: "/dashboard/management-learning-path", icon: BookMarked },
       { name: "Manajemen Pengguna", href: "/dashboard/management-users", icon: Users },

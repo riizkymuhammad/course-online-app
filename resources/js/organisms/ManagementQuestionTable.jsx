@@ -5,6 +5,8 @@ import { RowActions } from "@/atoms/RowActions";
 
 export function ManagementQuestionTable({
   questions = [],
+  itemName = "soal",
+  titleLabel = "Judul Soal",
   onView,
   onEdit,
   onDelete,
@@ -15,9 +17,9 @@ export function ManagementQuestionTable({
         <div className="mx-auto mb-4 grid h-14 w-14 place-items-center rounded-2xl bg-blue-50">
           <FileText className="h-7 w-7 text-blue-600" />
         </div>
-        <h3 className="text-lg font-semibold text-slate-800">Belum ada soal</h3>
+        <h3 className="text-lg font-semibold text-slate-800">Belum ada {itemName}</h3>
         <p className="mt-2 text-sm text-slate-500">
-          Data soal akan tampil di sini setelah ditambahkan.
+          Data {itemName} akan tampil di sini setelah ditambahkan.
         </p>
       </div>
     );
@@ -29,7 +31,7 @@ export function ManagementQuestionTable({
         <table className="w-full">
           <thead>
             <tr className="border-b border-slate-100 bg-slate-50/70">
-              <th className="px-6 py-4 text-left text-sm font-semibold text-slate-600">Judul Soal</th>
+              <th className="px-6 py-4 text-left text-sm font-semibold text-slate-600">{titleLabel}</th>
               <th className="px-6 py-4 text-left text-sm font-semibold text-slate-600">Kategori</th>
               <th className="px-6 py-4 text-left text-sm font-semibold text-slate-600">Pemateri</th>
               <th className="px-6 py-4 text-left text-sm font-semibold text-slate-600">Status</th>

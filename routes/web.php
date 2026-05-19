@@ -37,6 +37,7 @@ Route::get('/', function () {
 
     $quizzes = Question::query()
         ->with(['category', 'items'])
+        ->where('assessment_type', 'quiz')
         ->where('status', 'published')
         ->latest()
         ->take(4)
@@ -53,6 +54,26 @@ Route::get('/', function () {
             ];
         });
 
+    $tryouts = Question::query()
+        ->with(['category', 'items'])
+        ->where('assessment_type', 'tryout')
+        ->where('status', 'published')
+        ->latest()
+        ->take(4)
+        ->get()
+        ->map(function (Question $question) {
+            return [
+                'id' => $question->id,
+                'title' => $question->title,
+                'category' => $question->category?->name ?? '-',
+                'description' => $question->processing_notes,
+                'questions_count' => $question->items->count(),
+                'duration_minutes' => max(10, $question->items->count() * 2),
+                'href' => route('exam.quiz.show', ['question' => $question->id]),
+                'type' => 'tryout',
+            ];
+        });
+
     return Inertia::render('Welcome', [
         'canLogin' => Route::has('login'),
         'canRegister' => Route::has('register'),
@@ -60,6 +81,7 @@ Route::get('/', function () {
         'phpVersion' => PHP_VERSION,
         'courses' => $courses,
         'quizzes' => $quizzes,
+        'tryouts' => $tryouts,
     ]);
 });
 
@@ -162,6 +184,18 @@ Route::get('/dashboard/management-course', [\App\Http\Controllers\CourseControll
 Route::get('/dashboard/management-questions', [QuestionController::class, 'index'])
     ->name('dashboard.management-questions');
 
+Route::get('/dashboard/management-quiz', [QuestionController::class, 'quizIndex'])
+    ->name('dashboard.management-quiz');
+
+Route::get('/dashboard/management-quiz/create', [QuestionController::class, 'quizCreate'])
+    ->name('dashboard.management-quiz.create');
+
+Route::get('/dashboard/management-quiz/{question}/edit', [QuestionController::class, 'quizEdit'])
+    ->name('dashboard.management-quiz.edit');
+
+Route::get('/dashboard/management-quiz/{question}', [QuestionController::class, 'quizShow'])
+    ->name('dashboard.management-quiz.detail');
+
 Route::get('/dashboard/management-learning-path', [LearningPathController::class, 'index'])
     ->middleware(['auth', 'verified'])
     ->name('dashboard.management-learning-path');
@@ -169,11 +203,17 @@ Route::get('/dashboard/management-learning-path', [LearningPathController::class
 Route::get('/dashboard/management-questions/create', [QuestionController::class, 'create'])
     ->name('dashboard.management-questions.create');
 
+Route::get('/dashboard/management-questions/{question}/edit', [QuestionController::class, 'edit'])
+    ->name('dashboard.management-questions.edit');
+
 Route::get('/dashboard/management-questions/{question}', [QuestionController::class, 'show'])
     ->name('dashboard.management-questions.detail');
 
 Route::post('/dashboard/management-questions', [QuestionController::class, 'store'])
     ->name('dashboard.management-questions.store');
+
+Route::post('/dashboard/management-questions/{question}', [QuestionController::class, 'update'])
+    ->name('dashboard.management-questions.update');
 
 Route::get('/dashboard/management-course/create', function () {
  return Inertia::render('Dashboard/ManagementCourse/Create');

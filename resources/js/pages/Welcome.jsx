@@ -99,7 +99,7 @@ const socialLinks = [
    PAGE
 ===================================================== */
 
-export default function Welcome({ courses = [], quizzes = [] }) {
+export default function Welcome({ courses = [], quizzes = [], tryouts = [] }) {
   const whatsappNumber = "6281234567890"
   const whatsappMessage = encodeURIComponent(
     "Halo, saya ingin konsultasi mengenai kursus yang tersedia."
@@ -114,7 +114,22 @@ export default function Welcome({ courses = [], quizzes = [] }) {
         <HeroSlider slides={slides} />
         <CategoriesSection categories={categories} />
         <CoursesSection courses={courses} />
-        <QuizSection quizzes={quizzes} />
+        <QuizSection
+          quizzes={quizzes}
+          title="Quiz"
+          description="Latihan soal pembelajaran yang tersusun runtut berdasarkan alur materi."
+          buttonLabel="Lihat Semua Quiz"
+          buttonHref="/dashboard/management-quiz"
+          type="quiz"
+        />
+        <QuizSection
+          quizzes={tryouts}
+          title="Tryout"
+          description="Paket tryout terbaru untuk simulasi evaluasi dengan gaya pengerjaan yang lebih bebas."
+          buttonLabel="Lihat Semua Tryout"
+          buttonHref="/dashboard/management-questions"
+          type="tryout"
+        />
         <WhatsAppCTA whatsappLink={whatsappLink} />
       </main>
 

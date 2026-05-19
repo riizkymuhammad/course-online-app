@@ -11,7 +11,9 @@ export function QuizCard({
   questions_count,
   duration_minutes,
   href,
+  type = "quiz",
 }) {
+  const isQuiz = type === "quiz";
   const maxChars = 100;
   const rawDescription = (description && description.trim()) || "";
   const shortDescription =
@@ -30,7 +32,7 @@ export function QuizCard({
             </span>
             <div className="mt-5 flex items-start justify-between gap-3">
               <div>
-                <div className="text-sm font-semibold text-cyan-100">Quiz</div>
+                <div className="text-sm font-semibold text-cyan-100">{isQuiz ? "Quiz" : "Tryout"}</div>
                 <h3 className="mt-2 line-clamp-2 text-xl font-bold leading-snug">{title}</h3>
               </div>
               <div className="rounded-2xl bg-white/10 p-3">
@@ -45,7 +47,7 @@ export function QuizCard({
             <p className="mb-4 line-clamp-2 text-sm text-slate-600">{shortDescription}</p>
           ) : (
             <p className="mb-4 line-clamp-2 text-sm italic text-slate-400">
-              Quiz ini siap dikerjakan dari halaman ujian.
+              {isQuiz ? "Quiz ini siap dikerjakan dari halaman ujian." : "Tryout ini siap dikerjakan dari halaman ujian."}
             </p>
           )}
 
@@ -61,7 +63,7 @@ export function QuizCard({
           </div>
 
           <div className="mt-4 inline-flex items-center gap-2 text-sm font-semibold text-blue-700">
-            Mulai Quiz
+            {isQuiz ? "Mulai Quiz" : "Mulai Tryout"}
             <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
           </div>
         </CardContent>

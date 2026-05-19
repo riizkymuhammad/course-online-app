@@ -55,32 +55,55 @@ function FieldError({ message }) {
   return <p className="mt-2 text-sm text-red-500">{message}</p>;
 }
 
-export default function CreateQuestionPage({ instructors = [], statuses = [] }) {
+export default function CreateQuestionPage({
+  instructors = [],
+  statuses = [],
+  context = "tryout",
+  mode = "create",
+  question = null,
+}) {
+  const isQuiz = context === "quiz";
+  const isEdit = mode === "edit";
+  const managementLabel = isQuiz ? "Manajemen Quiz" : "Manajemen Tryout";
+  const backUrl = isQuiz ? "/dashboard/management-quiz" : "/dashboard/management-questions";
+  const pageTitle = isEdit
+    ? (isQuiz ? "Edit Quiz" : "Edit Tryout")
+    : (isQuiz ? "Buat Quiz Baru" : "Buat Tryout Baru");
+  const subjectLabel = isQuiz ? "quiz" : "tryout";
   const form = useForm({
-    title: "",
-    category_name: "",
-    is_generate_ai: true,
-    ai_question_count: 10,
-    instructor_ids: [],
-    status: "draft",
+    title: question?.title ?? "",
+    assessment_type: question?.assessment_type ?? context,
+    category_name: question?.category_name ?? "",
+    is_generate_ai: question?.is_generate_ai ?? true,
+    ai_question_count: question?.ai_question_count ?? 10,
+    instructor_ids: question?.instructor_ids ?? [],
+    status: question?.status ?? "draft",
     material_file: null,
     question_file: null,
-    has_answer_key: false,
+    has_answer_key: question?.has_answer_key ?? false,
     answer_key_file: null,
-    generate_answer_key: true,
+    generate_answer_key: question?.generate_answer_key ?? true,
   });
 
   const submit = (event) => {
     event.preventDefault();
-    form.post("/dashboard/management-questions", {
+    form.post(isEdit ? `/dashboard/management-questions/${question.id}` : "/dashboard/management-questions", {
       forceFormData: true,
+      preserveState: !isEdit,
+      replace: isEdit,
       onSuccess: () => {
-        window.alert("Soal berhasil diproses dan disimpan.");
-        window.location.href = "/dashboard/management-questions";
+        window.alert(
+          isEdit
+            ? `${isQuiz ? "Quiz" : "Tryout"} berhasil diperbarui.`
+            : `${pageTitle} berhasil diproses dan disimpan.`
+        );
+        if (!isEdit) {
+          window.location.href = backUrl;
+        }
       },
       onError: (errors) => {
         const firstError = Object.values(errors || {}).find(Boolean);
-        window.alert(firstError || "Proses simpan soal gagal. Periksa input dan coba lagi.");
+        window.alert(firstError || `Proses ${isEdit ? "update" : "simpan"} ${subjectLabel} gagal. Periksa input dan coba lagi.`);
       },
     });
   };
@@ -98,7 +121,7 @@ export default function CreateQuestionPage({ instructors = [], statuses = [] }) 
 
   return (
     <>
-      <Head title="Buat Soal Baru | Dashboard Manajemen" />
+      <Head title={`${pageTitle} | Dashboard Manajemen`} />
 
       <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white">
         {form.processing && (
@@ -110,10 +133,12 @@ export default function CreateQuestionPage({ instructors = [], statuses = [] }) 
                 </div>
                 <div className="space-y-2">
                   <h2 className="text-lg font-semibold text-slate-900">
-                    Sedang memproses soal
+                    {isEdit ? `Sedang menyimpan perubahan ${subjectLabel}` : `Sedang memproses ${subjectLabel}`}
                   </h2>
                   <p className="text-sm text-slate-500">
-                    {form.progress
+                    {isEdit
+                      ? "Perubahan metadata paket soal sedang disimpan."
+                      : form.progress
                       ? `Mengunggah file ${form.progress.percentage}%... setelah itu Gemini akan menyusun soal pilihan ganda, jawaban, dan kunci jawabannya.`
                       : "File sedang diunggah, lalu Gemini menyusun soal pilihan ganda, jawaban, dan kunci jawabannya sebelum data disimpan ke database."}
                   </p>
@@ -143,10 +168,10 @@ export default function CreateQuestionPage({ instructors = [], statuses = [] }) 
                   <BreadcrumbItem>
                     <BreadcrumbLink asChild>
                       <Link
-                        href="/dashboard/management-questions"
+                        href={backUrl}
                         className="text-slate-600 hover:text-slate-900"
                       >
-                        Manajemen Tryout
+                        {managementLabel}
                       </Link>
                     </BreadcrumbLink>
                   </BreadcrumbItem>
@@ -157,7 +182,7 @@ export default function CreateQuestionPage({ instructors = [], statuses = [] }) 
 
                   <BreadcrumbItem>
                     <BreadcrumbPage className="font-medium text-slate-900">
-                      Buat Soal Baru
+                      {pageTitle}
                     </BreadcrumbPage>
                   </BreadcrumbItem>
                 </BreadcrumbList>
@@ -168,11 +193,7 @@ export default function CreateQuestionPage({ instructors = [], statuses = [] }) 
                   <FileQuestion className="h-7 w-7" />
                 </div>
                 <div className="space-y-2">
-                  <h1 className="text-3xl font-bold text-slate-900 md:text-4xl">Buat Soal Baru</h1>
-                  <p className="max-w-3xl text-sm text-slate-500 md:text-base">
-                    Soal bersifat pilihan ganda. Anda bisa membuat soal dari materi menggunakan AI
-                    atau mengunggah file soal lalu meminta AI membuat kunci jawabannya.
-                  </p>
+                  <h1 className="text-3xl font-bold text-slate-900 md:text-4xl">{pageTitle}</h1>
                 </div>
               </div>
             </div>
@@ -191,19 +212,21 @@ export default function CreateQuestionPage({ instructors = [], statuses = [] }) 
             <div className="grid gap-6 xl:grid-cols-[1.4fr,0.8fr]">
               <section className="space-y-6 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
                 <div className="space-y-1">
-                  <h2 className="text-xl font-semibold text-slate-900">Detail Soal</h2>
+                  <h2 className="text-xl font-semibold text-slate-900">Detail {isQuiz ? "Quiz" : "Tryout"}</h2>
                   <p className="text-sm text-slate-500">
-                    Lengkapi informasi dasar, sumber soal, dan konfigurasi AI.
+                    {isEdit
+                      ? "Perbarui informasi dasar paket soal tanpa mengubah hasil generate yang sudah tersimpan."
+                      : "Lengkapi informasi dasar, sumber soal, dan konfigurasi AI."}
                   </p>
                 </div>
 
                 <div className="grid gap-5 md:grid-cols-2">
                   <div className="space-y-2 md:col-span-2">
-                    <label className="text-sm font-medium text-slate-700">Judul Soal</label>
+                    <label className="text-sm font-medium text-slate-700">Judul {isQuiz ? "Quiz" : "Tryout"}</label>
                     <Input
                       value={form.data.title}
                       onChange={(event) => form.setData("title", event.target.value)}
-                      placeholder="Contoh: Ujian Akhir Dasar Pemrograman"
+                      placeholder={isQuiz ? "Contoh: Quiz Bab 1 Dasar Pemrograman" : "Contoh: Tryout Dasar Pemrograman"}
                       className="h-11 rounded-xl border-slate-200"
                     />
                     <FieldError message={form.errors.title} />
@@ -220,25 +243,29 @@ export default function CreateQuestionPage({ instructors = [], statuses = [] }) 
                     <FieldError message={form.errors.category_name} />
                   </div>
 
-                  <div className="md:col-span-2">
-                    <ToggleField
-                      checked={form.data.is_generate_ai}
-                      onChange={(value) => {
-                        form.setData("is_generate_ai", value);
-                        if (value) {
-                          form.setData("has_answer_key", false);
-                          form.setData("generate_answer_key", true);
-                          form.setData("question_file", null);
-                          form.setData("answer_key_file", null);
-                        } else {
-                          form.setData("material_file", null);
-                        }
-                      }}
-                      label="Generate AI"
-                      description="Jika aktif, AI membuat soal pilihan ganda dari file materi yang Anda unggah."
-                    />
-                    <FieldError message={form.errors.is_generate_ai} />
-                  </div>
+                  {!isEdit ? (
+                    <div className="md:col-span-2">
+                      <ToggleField
+                        checked={form.data.is_generate_ai}
+                        onChange={(value) => {
+                          form.setData("is_generate_ai", value);
+                          if (value) {
+                            form.setData("has_answer_key", false);
+                            form.setData("generate_answer_key", true);
+                            form.setData("question_file", null);
+                            form.setData("answer_key_file", null);
+                          } else {
+                            form.setData("material_file", null);
+                          }
+                        }}
+                        label="Generate AI"
+                        description={isQuiz
+                          ? "Jika aktif, AI membuat paket quiz pilihan ganda yang mengikuti alur materi dari file yang Anda unggah."
+                          : "Jika aktif, AI membuat paket tryout pilihan ganda dari file materi yang Anda unggah."}
+                      />
+                      <FieldError message={form.errors.is_generate_ai} />
+                    </div>
+                  ) : null}
 
                   <div className="space-y-2">
                     <label className="text-sm font-medium text-slate-700">Status</label>
@@ -257,7 +284,7 @@ export default function CreateQuestionPage({ instructors = [], statuses = [] }) 
                     <FieldError message={form.errors.status} />
                   </div>
 
-                  {form.data.is_generate_ai ? (
+                  {!isEdit && form.data.is_generate_ai ? (
                     <>
                       <div className="space-y-2">
                         <label className="text-sm font-medium text-slate-700">Jumlah Soal</label>
@@ -281,12 +308,14 @@ export default function CreateQuestionPage({ instructors = [], statuses = [] }) 
                           className="h-11 rounded-xl border-slate-200"
                         />
                         <p className="text-xs text-slate-500">
-                          AI akan membaca materi ini untuk membuat soal pilihan ganda dan kunci jawabannya.
+                          {isQuiz
+                            ? "AI akan membaca materi ini untuk membuat quiz pilihan ganda yang runtut beserta kunci jawabannya."
+                            : "AI akan membaca materi ini untuk membuat tryout pilihan ganda beserta kunci jawabannya."}
                         </p>
                         <FieldError message={form.errors.material_file} />
                       </div>
                     </>
-                  ) : (
+                  ) : !isEdit ? (
                     <>
                       <div className="space-y-2 md:col-span-2">
                         <label className="text-sm font-medium text-slate-700">Upload Soal</label>
@@ -350,6 +379,10 @@ export default function CreateQuestionPage({ instructors = [], statuses = [] }) 
                         </div>
                       )}
                     </>
+                  ) : (
+                    <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4 text-sm leading-6 text-slate-600 md:col-span-2">
+                      Metadata paket soal dapat diperbarui di halaman ini. Untuk mengganti file sumber atau melakukan generate ulang, gunakan pembuatan paket baru.
+                    </div>
                   )}
                 </div>
               </section>
@@ -406,11 +439,21 @@ export default function CreateQuestionPage({ instructors = [], statuses = [] }) 
                 </section>
 
                 <section className="rounded-3xl border border-slate-200 bg-slate-900 p-6 text-white shadow-lg shadow-slate-900/10">
-                  <h2 className="text-lg font-semibold">Catatan Proses</h2>
+                  <h2 className="text-lg font-semibold">{isEdit ? "Catatan Edit" : "Catatan Proses"}</h2>
                   <ul className="mt-4 space-y-3 text-sm text-slate-200">
-                    <li>Mode AI: file materi digunakan untuk membangkitkan soal pilihan ganda.</li>
-                    <li>Mode unggah manual: AI membaca file soal dan file kunci untuk membentuk struktur soal.</li>
-                    <li>Jika tidak ada file kunci jawaban, aktifkan generate jawaban.</li>
+                    {isEdit ? (
+                      <>
+                        <li>Edit hanya memperbarui metadata paket soal yang sudah ada.</li>
+                        <li>Jumlah soal saat ini tetap mengikuti hasil generate atau ekstraksi sebelumnya.</li>
+                        <li>Gunakan halaman create jika ingin generate ulang dari file baru.</li>
+                      </>
+                    ) : (
+                      <>
+                        <li>Mode AI: file materi digunakan untuk membangkitkan soal pilihan ganda.</li>
+                        <li>Mode unggah manual: AI membaca file soal dan file kunci untuk membentuk struktur soal.</li>
+                        <li>Jika tidak ada file kunci jawaban, aktifkan generate jawaban.</li>
+                      </>
+                    )}
                   </ul>
                 </section>
               </aside>
@@ -439,7 +482,7 @@ export default function CreateQuestionPage({ instructors = [], statuses = [] }) 
                 ) : (
                   <span className="inline-flex items-center gap-2">
                     <Save className="h-4 w-4" />
-                    Simpan Soal
+                    {isEdit ? "Simpan Perubahan" : (isQuiz ? "Simpan Quiz" : "Simpan Tryout")}
                   </span>
                 )}
               </Button>

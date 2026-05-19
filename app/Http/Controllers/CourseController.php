@@ -16,14 +16,54 @@ class CourseController extends Controller
      */
     public function index()
     {
+        $search = trim((string) request('search', ''));
+
         $courses = Course::query()
-            ->with('categories')
+            ->select(['id', 'uuid', 'slug', 'title', 'instructor', 'status'])
+            ->with('categories:id,name')
             ->withCount(['sections', 'modules'])
+            ->when($search !== '', function ($query) use ($search) {
+                $query->where(function ($subQuery) use ($search) {
+                    $subQuery
+                        ->where('title', 'like', "%{$search}%")
+                        ->orWhere('status', 'like', "%{$search}%")
+                        ->orWhere('instructor', 'like', "%{$search}%")
+                        ->orWhereHas('categories', fn ($categoryQuery) => $categoryQuery->where('name', 'like', "%{$search}%"));
+                });
+            })
             ->latest()
-            ->get();
+            ->paginate(10)
+            ->withQueryString()
+            ->through(function (Course $course) {
+                return [
+                    'id' => $course->id,
+                    'uuid' => $course->uuid,
+                    'slug' => $course->slug,
+                    'title' => $course->title,
+                    'instructor' => $course->instructor,
+                    'status' => $course->status,
+                    'sections_count' => $course->sections_count,
+                    'modules_count' => $course->modules_count,
+                    'categories' => $course->categories->map(fn (Category $category) => [
+                        'id' => $category->id,
+                        'name' => $category->name,
+                    ])->values(),
+                ];
+            });
 
         return Inertia::render('Dashboard/ManagementCourse', [
-            'courses' => $courses,
+            'courses' => $courses->items(),
+            'pagination' => [
+                'current_page' => $courses->currentPage(),
+                'last_page' => $courses->lastPage(),
+                'per_page' => $courses->perPage(),
+                'total' => $courses->total(),
+                'from' => $courses->firstItem() ?? 0,
+                'to' => $courses->lastItem() ?? 0,
+            ],
+            'filters' => [
+                'search' => $search,
+            ],
         ]);
     }
 

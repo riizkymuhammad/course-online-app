@@ -8,6 +8,7 @@ export function ActionBar({
   buttonLabel = "Tambah",
   onAdd,
   onSearchChange,
+  searchValue = "",
 }) {
   return (
     <div className="flex flex-col md:flex-row gap-4 mb-6">
@@ -15,6 +16,7 @@ export function ActionBar({
         <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
         <Input
           placeholder={searchPlaceholder}
+          value={searchValue}
           className="pl-12 h-11 rounded-xl border-slate-200 bg-white focus:border-blue-400 focus:ring-blue-100"
           onChange={(e) => onSearchChange?.(e.target.value)}
         />

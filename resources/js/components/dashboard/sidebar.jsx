@@ -6,6 +6,8 @@ import {
   ShoppingCart,
   LayoutDashboard,
   BookMarked,
+  FileText,
+  ClipboardCheck,
   User,
   LogOut,
   Layers,
@@ -28,11 +30,15 @@ export function DashboardSidebar({
       { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
       { name: "Materi", href: "/dashboard/course", icon: BookOpen },
       { name: "Pembelajaran", href: "/dashboard/learning", icon: BookMarked },
+      { name: "Tryout", href: "/dashboard/tryout", icon: ClipboardCheck },
       { name: "Transaksi Pembelian", href: "/dashboard/purchases", icon: ShoppingCart },
       { name: "Profil", href: "/dashboard/profile", icon: User },
     ],
-    fasilitator: [],
+    fasilitator: [
+      { name: "Tryout", href: "/dashboard/tryout", icon: ClipboardCheck },
+    ],
     superadmin: [
+      { name: "Tryout", href: "/dashboard/tryout", icon: ClipboardCheck },
       { name: "Monitoring Pembelajaran", href: "/dashboard/learning", icon: BookMarked },
     ],
   }
@@ -41,9 +47,15 @@ export function DashboardSidebar({
     student: [],
     fasilitator: [
       { name: "Manajemen Materi", href: "/dashboard/management-course", icon: Layers },
+      { name: "Manajemen Quiz", href: "/dashboard/management-quiz", icon: FileText },
+      { name: "Manajemen Tryout", href: "/dashboard/management-questions", icon: FileText },
+      { name: "Manajemen Learning Path", href: "/dashboard/management-learning-path", icon: BookMarked },
     ],
     superadmin: [
       { name: "Manajemen Materi", href: "/dashboard/management-course", icon: Layers },
+      { name: "Manajemen Quiz", href: "/dashboard/management-quiz", icon: FileText },
+      { name: "Manajemen Tryout", href: "/dashboard/management-questions", icon: FileText },
+      { name: "Manajemen Learning Path", href: "/dashboard/management-learning-path", icon: BookMarked },
       { name: "Manajemen Pengguna", href: "/dashboard/management-users", icon: Users },
       { name: "Manajemen Pembelian", href: "/dashboard/purchases", icon: ShoppingCart },
     ],
@@ -125,6 +137,7 @@ export function DashboardSidebar({
                 <Link
                   key={item.href}
                   href={item.href}
+                  prefetch
                   title={!isOpen ? item.name : undefined}
                   onClick={onClose} // agar mobile bisa auto-close bila dipakai
                   className={cn(
@@ -160,6 +173,7 @@ export function DashboardSidebar({
                 <Link
                   key={item.href}
                   href={item.href}
+                  prefetch
                   title={!isOpen ? item.name : undefined}
                   onClick={onClose}
                   className={cn(

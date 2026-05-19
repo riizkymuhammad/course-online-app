@@ -13,6 +13,27 @@ permissions:
   contents: read
 
 jobs:
+  assets:
+    runs-on: ubuntu-latest
+
+    name: Frontend build
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install Node dependencies
+        run: npm ci
+
+      - name: Build frontend assets
+        run: npm run build
+
   tests:
     runs-on: ubuntu-latest
 

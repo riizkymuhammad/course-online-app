@@ -5,7 +5,7 @@ import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
 import { Loader2, Check, AlertCircle } from "lucide-react";
 
-export default function YouTubeModuleInput({ onModuleAdded, isLoading = false }) {
+export default function YoutubeModuleInput({ onModuleAdded, isLoading = false }) {
   const [youtubeUrl, setYoutubeUrl] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");

@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Card, CardContent } from "@/components/ui/card";
 import { Plus, Trash2, Youtube, CreditCard } from "lucide-react";
 
-import YouTubeModuleInput from "./YouTubeModuleInput";
+import YoutubeModuleInput from "./YoutubeModuleInput";
 
 export default function ModulesTab({
   sections = [],
@@ -122,7 +122,7 @@ export default function ModulesTab({
 
         {/* YouTube Input */}
         {showYouTubeInput === activeSection ? (
-          <YouTubeModuleInput
+          <YoutubeModuleInput
             onModuleAdded={(moduleData) => {
               onAddYouTubeModule(activeSection, moduleData);
               setShowYouTubeInput(null);
